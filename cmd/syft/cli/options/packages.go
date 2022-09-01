@@ -26,6 +26,7 @@ type PackagesOptions struct {
 	OverwriteExistingImage bool
 	ImportTimeout          uint
 	Catalogers             []string
+	CleanupDisabled        bool
 }
 
 var _ Interface = (*PackagesOptions)(nil)
@@ -70,6 +71,9 @@ func (o *PackagesOptions) AddFlags(cmd *cobra.Command, v *viper.Viper) error {
 	cmd.Flags().UintVarP(&o.ImportTimeout, "import-timeout", "", 30,
 		"set a timeout duration (in seconds) for the upload to Anchore Enterprise")
 
+	cmd.Flags().BoolVarP(&o.CleanupDisabled, "cleanup-disabled", "", false,
+		"do not clean any temporary directories created during sbom generation (default false)")
+
 	return bindPackageConfigOptions(cmd.Flags(), v)
 }
 
@@ -101,6 +105,10 @@ func bindPackageConfigOptions(flags *pflag.FlagSet, v *viper.Viper) error {
 	}
 
 	if err := v.BindPFlag("platform", flags.Lookup("platform")); err != nil {
+		return err
+	}
+
+	if err := v.BindPFlag("cleanup-disabled", flags.Lookup("cleanup-disabled")); err != nil {
 		return err
 	}
 

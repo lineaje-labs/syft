@@ -57,6 +57,7 @@ type Application struct {
 	Exclusions         []string           `yaml:"exclude" json:"exclude" mapstructure:"exclude"`
 	Attest             attest             `yaml:"attest" json:"attest" mapstructure:"attest"`
 	Platform           string             `yaml:"platform" json:"platform" mapstructure:"platform"`
+	CleanupDisabled    bool               `yaml:"cleanup-disabled" json:"cleanup-disabled" mapstructure:"cleanup-disabled"`
 }
 
 func (cfg Application) ToCatalogerConfig() cataloger.Config {
