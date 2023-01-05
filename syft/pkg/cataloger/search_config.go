@@ -11,7 +11,7 @@ type SearchConfig struct {
 func DefaultSearchConfig() SearchConfig {
 	return SearchConfig{
 		IncludeIndexedArchives:   true,
-		IncludeUnindexedArchives: false,
+		IncludeUnindexedArchives: true,
 		Scope:                    source.SquashedScope,
 	}
 }

@@ -20,6 +20,8 @@ func NewJavaCataloger(cfg Config) *generic.Cataloger {
 	if cfg.SearchUnindexedArchives {
 		// java archives wrapped within tar files
 		c.WithParserByGlobs(parseTarWrappedJavaArchive, genericTarGlobs...)
+		// java archives wrapped within rpm files
+		c.WithParserByGlobs(parseRPMJavaArchive, genericRpmGlobs...)
 	}
 	return c
 }
