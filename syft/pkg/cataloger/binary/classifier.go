@@ -171,7 +171,7 @@ func extractNameAndVersion(packageData string) (string, string) {
 	} else {
 		match := soLibNameVersionPatternRegex.FindStringSubmatch(packageData)
 		if len(match) == 3 {
-			return match[1], match[2]
+			return match[1], strings.TrimPrefix(match[2], ".")
 		} else {
 			return packageData, "unknown"
 		}
