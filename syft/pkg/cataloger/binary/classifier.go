@@ -159,6 +159,7 @@ func fileSymbolMatcher() evidenceMatcher {
 		if p == nil {
 			return nil, nil
 		}
+		p.Type = classifier.Class
 		return []pkg.Package{*p}, nil
 	}
 }

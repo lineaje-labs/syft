@@ -255,7 +255,7 @@ var defaultClassifiers = []classifier{
 		CPEs:    singleCPE("cpe:2.3:a:hashicorp:consul:*:*:*:*:*:*:*:*"),
 	},
 	{
-		Class:           "c-c-plus-plus-library",
+		Class:           "shared-library",
 		FileGlob:        "**/lib*.so*",
 		EvidenceMatcher: fileSymbolMatcher(),
 	},
