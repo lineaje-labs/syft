@@ -135,8 +135,9 @@ func fileContentsVersionMatcher(pattern string) evidenceMatcher {
 	}
 }
 
-func fileSymbolMatcher(pattern string) evidenceMatcher {
+func fileSymbolMatcher() evidenceMatcher {
 	return func(resolver file.Resolver, classifier classifier, location file.Location) ([]pkg.Package, error) {
+		classifier.Package = location.RealPath
 		matchMetadata := make(map[string]string)
 		matchMetadata["version"] = "1.0.0"
 		p := newPackage(classifier, location, matchMetadata)
