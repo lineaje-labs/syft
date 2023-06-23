@@ -52,11 +52,20 @@ func Run(_ context.Context, app *config.Application, args []string) error {
 	syft.SetBus(eventBus)
 	subscription := eventBus.Subscribe()
 
+	var eventCleanup func()
+	if app.CleanupDisabled {
+		eventCleanup = func() {
+		}
+	} else {
+		eventCleanup = func() {
+			stereoscope.Cleanup()
+		}
+	}
 	return eventloop.EventLoop(
 		execWorker(app, *si, writer),
 		eventloop.SetupSignals(),
 		subscription,
-		stereoscope.Cleanup,
+		eventCleanup,
 		ui.Select(options.IsVerbose(app), app.Quiet)...,
 	)
 }
@@ -67,7 +76,7 @@ func execWorker(app *config.Application, si source.Input, writer sbom.Writer) <-
 		defer close(errs)
 
 		src, cleanup, err := source.New(si, app.Registry.ToOptions(), app.Exclusions)
-		if cleanup != nil {
+		if cleanup != nil && !app.CleanupDisabled {
 			defer cleanup()
 		}
 		if err != nil {
