@@ -138,6 +138,7 @@ func fileContentsVersionMatcher(pattern string) evidenceMatcher {
 func fileSymbolMatcher(pattern string) evidenceMatcher {
 	return func(resolver file.Resolver, classifier classifier, location file.Location) ([]pkg.Package, error) {
 		var matchMetadata map[string]string
+		matchMetadata["version"] = "1.0.0"
 		p := newPackage(classifier, location, matchMetadata)
 		if p == nil {
 			return nil, nil
