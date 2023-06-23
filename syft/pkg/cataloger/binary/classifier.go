@@ -141,24 +141,40 @@ func fileSymbolMatcher() evidenceMatcher {
 		if err != nil {
 			return nil, err
 		}
+		matchMetadata := make(map[string]string)
 		r := bytes.NewReader(contents)
 		e, _ := elf.NewFile(r)
 		if e != nil {
 			dynamicStringList, err := e.DynString(elf.DT_SONAME)
 			if err != nil {
 				log.Debugf("unable to read dynamic strings for the tag DT_SONAME from the elf library at: %s -- %s", location.RealPath, err)
+				classifier.Package, matchMetadata["version"] = extractNameAndVersion(location.RealPath)
+			} else {
+				classifier.Package, matchMetadata["version"] = extractNameAndVersion(dynamicStringList[0])
 			}
-			classifier.Package = dynamicStringList[0]
 		} else {
-			classifier.Package = location.RealPath
+			classifier.Package, matchMetadata["version"] = extractNameAndVersion(location.RealPath)
 		}
-		matchMetadata := make(map[string]string)
-		matchMetadata["version"] = "1.0.0"
 		p := newPackage(classifier, location, matchMetadata)
 		if p == nil {
 			return nil, nil
 		}
 		return []pkg.Package{*p}, nil
+	}
+}
+
+func extractNameAndVersion(packageData string) (string, string) {
+	soLibNameVersionPattern := "(?i)(.*)\\.so(.*)"
+	soLibNameVersionPatternRegex, _ := regexp.Compile(soLibNameVersionPattern)
+	if strings.HasSuffix(packageData, ".so") {
+		return strings.TrimSuffix(packageData, ".so"), "unknown"
+	} else {
+		match := soLibNameVersionPatternRegex.FindStringSubmatch(packageData)
+		if len(match) == 3 {
+			return match[1], match[2]
+		} else {
+			return packageData, "unknown"
+		}
 	}
 }
 
