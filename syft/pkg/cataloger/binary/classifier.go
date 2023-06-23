@@ -150,7 +150,11 @@ func fileSymbolMatcher() evidenceMatcher {
 				log.Debugf("unable to read dynamic strings for the tag DT_SONAME from the elf library at: %s -- %s", location.RealPath, err)
 				classifier.Package, matchMetadata["version"] = extractNameAndVersion(location.RealPath)
 			} else {
-				classifier.Package, matchMetadata["version"] = extractNameAndVersion(dynamicStringList[0])
+				if len(dynamicStringList) > 0 {
+					classifier.Package, matchMetadata["version"] = extractNameAndVersion(dynamicStringList[0])
+				} else {
+					classifier.Package, matchMetadata["version"] = extractNameAndVersion(location.RealPath)
+				}
 			}
 		} else {
 			classifier.Package, matchMetadata["version"] = extractNameAndVersion(location.RealPath)
