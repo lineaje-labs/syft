@@ -137,7 +137,21 @@ func fileContentsVersionMatcher(pattern string) evidenceMatcher {
 
 func fileSymbolMatcher() evidenceMatcher {
 	return func(resolver file.Resolver, classifier classifier, location file.Location) ([]pkg.Package, error) {
-		classifier.Package = location.RealPath
+		contents, err := getContents(resolver, location)
+		if err != nil {
+			return nil, err
+		}
+		r := bytes.NewReader(contents)
+		e, _ := elf.NewFile(r)
+		if e != nil {
+			dynamicStringList, err := e.DynString(elf.DT_SONAME)
+			if err != nil {
+				log.Debugf("unable to read dynamic strings for the tag DT_SONAME from the elf library at: %s -- %s", location.RealPath, err)
+			}
+			classifier.Package = dynamicStringList[0]
+		} else {
+			classifier.Package = location.RealPath
+		}
 		matchMetadata := make(map[string]string)
 		matchMetadata["version"] = "1.0.0"
 		p := newPackage(classifier, location, matchMetadata)
