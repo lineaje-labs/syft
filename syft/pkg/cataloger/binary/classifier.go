@@ -135,10 +135,23 @@ func fileContentsVersionMatcher(pattern string) evidenceMatcher {
 	}
 }
 
+func fileSymbolMatcher(pattern string) evidenceMatcher {
+	return func(resolver file.Resolver, classifier classifier, location file.Location) ([]pkg.Package, error) {
+		var matchMetadata map[string]string
+		p := newPackage(classifier, location, matchMetadata)
+		if p == nil {
+			return nil, nil
+		}
+		return []pkg.Package{*p}, nil
+	}
+}
+
 //nolint:gocognit
 func sharedLibraryLookup(sharedLibraryPattern string, sharedLibraryMatcher evidenceMatcher) evidenceMatcher {
 	pat := regexp.MustCompile(sharedLibraryPattern)
-	return func(resolver file.Resolver, classifier classifier, location file.Location) (packages []pkg.Package, _ error) {
+	return func(
+		resolver file.Resolver, classifier classifier, location file.Location,
+	) (packages []pkg.Package, _ error) {
 		libs, err := sharedLibraries(resolver, location)
 		if err != nil {
 			return nil, err
