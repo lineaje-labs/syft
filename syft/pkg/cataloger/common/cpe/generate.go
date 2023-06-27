@@ -110,7 +110,7 @@ func candidateVendors(p pkg.Package) []string {
 
 	switch p.Type {
 	case pkg.BinaryPkg:
-		if strings.HasPrefix(p.Name, "boost") {
+		if strings.HasPrefix(p.Name, "libboost") {
 			vendors.addValue("boost")
 		}
 	}
