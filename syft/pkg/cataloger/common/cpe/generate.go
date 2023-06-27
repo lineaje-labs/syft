@@ -171,6 +171,13 @@ func candidateProducts(p pkg.Package) []string {
 		products.union(candidateProductsForAPK(p))
 	}
 
+	switch p.Type {
+	case pkg.BinaryPkg:
+		if strings.HasPrefix(p.Name, "libboost") {
+			products.addValue("boost")
+		}
+	}
+
 	// it is never OK to have candidates with these values ["" and "*"] (since CPEs will match any other value)
 	products.removeByValue("")
 	products.removeByValue("*")
