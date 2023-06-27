@@ -112,6 +112,8 @@ func candidateVendors(p pkg.Package) []string {
 	case pkg.BinaryPkg:
 		if strings.HasPrefix(p.Name, "lib") && strings.Contains(p.Name, "boost_") {
 			vendors.addValue("boost")
+		} else if p.Name == "libc" {
+			vendors.addValue("gnu")
 		}
 	}
 	fmt.Println(p)
@@ -175,6 +177,8 @@ func candidateProducts(p pkg.Package) []string {
 	case pkg.BinaryPkg:
 		if strings.HasPrefix(p.Name, "lib") && strings.Contains(p.Name, "boost_") {
 			products.addValue("boost")
+		} else if p.Name == "libc" {
+			products.addValue("glibc")
 		}
 	}
 
