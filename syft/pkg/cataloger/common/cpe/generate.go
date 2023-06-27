@@ -110,7 +110,7 @@ func candidateVendors(p pkg.Package) []string {
 
 	switch p.Type {
 	case pkg.BinaryPkg:
-		if strings.HasPrefix(p.Name, "libboost") {
+		if strings.HasPrefix(p.Name, "lib") && strings.Contains(p.Name, "boost-") {
 			vendors.addValue("boost")
 		}
 	}
@@ -173,7 +173,7 @@ func candidateProducts(p pkg.Package) []string {
 
 	switch p.Type {
 	case pkg.BinaryPkg:
-		if strings.HasPrefix(p.Name, "libboost") {
+		if strings.HasPrefix(p.Name, "lib") && strings.Contains(p.Name, "boost-") {
 			products.addValue("boost")
 		}
 	}
