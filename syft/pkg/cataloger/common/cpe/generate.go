@@ -91,6 +91,10 @@ func candidateVendors(p pkg.Package) []string {
 		if vendor != "" {
 			vendors.addValue(vendor)
 		}
+	case pkg.BinaryPkg:
+		if strings.HasPrefix(p.Name, "boost") {
+			vendors.addValue("boost")
+		}
 	}
 
 	switch p.MetadataType {
