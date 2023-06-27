@@ -156,8 +156,9 @@ func fileSymbolMatcher() evidenceMatcher {
 					classifier.Package, matchMetadata["version"] = extractNameAndVersion(location.RealPath)
 				}
 			}
-			fmt.Println("Dynamic string")
-			fmt.Println(e.DynString(elf.DT_VERDEF))
+			fmt.Println("Dynamic symbols")
+			fmt.Println(e.DynamicSymbols())
+			// DynValue(elf.DT_VERDEF))
 		} else {
 			classifier.Package, matchMetadata["version"] = extractNameAndVersion(location.RealPath)
 		}
