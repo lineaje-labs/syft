@@ -91,12 +91,7 @@ func candidateVendors(p pkg.Package) []string {
 		if vendor != "" {
 			vendors.addValue(vendor)
 		}
-	// case pkg.BinaryPkg:
-	// 	if strings.HasPrefix(p.Name, "boost") {
-	// 		vendors.addValue("boost")
-	// 	}
 	}
-	fmt.Println(p)
 
 	switch p.MetadataType {
 	case pkg.RpmMetadataType:
@@ -112,6 +107,14 @@ func candidateVendors(p pkg.Package) []string {
 	case pkg.NpmPackageJSONMetadataType:
 		vendors.union(candidateVendorsForJavascript(p))
 	}
+
+	switch p.Type {
+	case pkg.BinaryPkg:
+		if strings.HasPrefix(p.Name, "boost") {
+			vendors.addValue("boost")
+		}
+	}
+	fmt.Println(p)
 
 	// We should no longer be generating vendor candidates with these values ["" and "*"]
 	// (since CPEs will match any other value)
