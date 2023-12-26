@@ -3,11 +3,11 @@ package java
 import (
 	"fmt"
 
-	intFile "github.com/anchore/syft/internal/file"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
+	intFile "github.com/lineaje-labs/syft/internal/file"
 )
 
 var genericZipGlobs = []string{
@@ -28,7 +28,9 @@ func newGenericZipWrappedJavaArchiveParser(cfg ArchiveCatalogerConfig) genericZi
 	}
 }
 
-func (gzp genericZipWrappedJavaArchiveParser) parseZipWrappedJavaArchive(_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
+func (gzp genericZipWrappedJavaArchiveParser) parseZipWrappedJavaArchive(
+	_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser,
+) ([]pkg.Package, []artifact.Relationship, error) {
 	contentPath, archivePath, cleanupFn, err := saveArchiveToTmp(reader.Path(), reader)
 	// note: even on error, we should always run cleanup functions
 	defer cleanupFn()

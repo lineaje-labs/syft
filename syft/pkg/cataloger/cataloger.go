@@ -8,7 +8,6 @@ package cataloger
 import (
 	"strings"
 
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/alpine"
 	"github.com/anchore/syft/syft/pkg/cataloger/arch"
@@ -35,6 +34,7 @@ import (
 	"github.com/anchore/syft/syft/pkg/cataloger/rust"
 	"github.com/anchore/syft/syft/pkg/cataloger/sbom"
 	"github.com/anchore/syft/syft/pkg/cataloger/swift"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 const AllCatalogersPattern = "all"

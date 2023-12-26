@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/anchore/syft/syft/internal/windows"
+	"github.com/lineaje-labs/syft/syft/internal/windows"
 )
 
 // ChrootContext helps to modify path from a real filesystem to a chroot-like filesystem, taking into account

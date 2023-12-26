@@ -11,12 +11,12 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/anchore/syft/internal"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
+	"github.com/lineaje-labs/syft/internal"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var (
@@ -25,7 +25,9 @@ var (
 )
 
 // parseDpkgDB reads a dpkg database "status" file (and surrounding data files) and returns the packages and relationships found.
-func parseDpkgDB(resolver file.Resolver, env *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
+func parseDpkgDB(
+	resolver file.Resolver, env *generic.Environment, reader file.LocationReadCloser,
+) ([]pkg.Package, []artifact.Relationship, error) {
 	metadata, err := parseDpkgStatus(reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to catalog dpkg DB=%q: %w", reader.RealPath, err)

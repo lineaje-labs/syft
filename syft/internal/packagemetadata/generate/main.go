@@ -7,7 +7,7 @@ import (
 
 	"github.com/dave/jennifer/jen"
 
-	"github.com/anchore/syft/syft/internal/packagemetadata"
+	"github.com/lineaje-labs/syft/syft/internal/packagemetadata"
 )
 
 // This program is invoked from syft/internal and generates packagemetadata/generated.go
@@ -25,7 +25,7 @@ func main() {
 
 	// for _, typeName := range typeNames {
 	//	fmt.Printf(" - %s\n", typeName)
-	//}
+	// }
 
 	fmt.Printf("updating package metadata type list with %+v types\n", len(typeNames))
 

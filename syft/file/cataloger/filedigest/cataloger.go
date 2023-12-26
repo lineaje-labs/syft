@@ -8,13 +8,13 @@ import (
 	"github.com/wagoodman/go-progress"
 
 	stereoscopeFile "github.com/anchore/stereoscope/pkg/file"
-	"github.com/anchore/syft/internal"
-	"github.com/anchore/syft/internal/bus"
-	intFile "github.com/anchore/syft/internal/file"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/event"
 	"github.com/anchore/syft/syft/file"
-	intCataloger "github.com/anchore/syft/syft/file/cataloger/internal"
+	"github.com/lineaje-labs/syft/internal"
+	"github.com/lineaje-labs/syft/internal/bus"
+	intFile "github.com/lineaje-labs/syft/internal/file"
+	"github.com/lineaje-labs/syft/internal/log"
+	intCataloger "github.com/lineaje-labs/syft/syft/file/cataloger/internal"
 )
 
 var ErrUndigestableFile = errors.New("undigestable file")
@@ -29,7 +29,9 @@ func NewCataloger(hashes []crypto.Hash) *Cataloger {
 	}
 }
 
-func (i *Cataloger) Catalog(resolver file.Resolver, coordinates ...file.Coordinates) (map[file.Coordinates][]file.Digest, error) {
+func (i *Cataloger) Catalog(
+	resolver file.Resolver, coordinates ...file.Coordinates,
+) (map[file.Coordinates][]file.Digest, error) {
 	results := make(map[file.Coordinates][]file.Digest)
 	var locations []file.Location
 

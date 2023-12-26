@@ -3,13 +3,12 @@ package java
 import (
 	"fmt"
 
-	internalFile "github.com/anchore/syft/internal/file"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
 	"github.com/anchore/syft/syft/pkg/cataloger/redhat"
-	"github.com/anchore/syft/syft/source"
+	internalFile "github.com/lineaje-labs/syft/internal/file"
 )
 
 var genericRpmGlobs = []string{
@@ -29,9 +28,8 @@ func newGenericRPMWrappedJavaArchiveParser(cfg ArchiveCatalogerConfig) genericRP
 
 // parseRPMJavaArchive is a parser function for java archive contents contained within rpm files.
 func (grp *genericRPMWrappedJavaArchiveParser) parseRPMJavaArchive(
-	resolver source.FileResolver, _ *generic.Environment, reader file.LocationReadCloser,
+	resolver file.Resolver, _ *generic.Environment, reader file.LocationReadCloser,
 ) ([]pkg.Package, []artifact.Relationship, error) {
-
 	contentPath, archivePath, cleanupFn, err := saveArchiveToTmp(reader.Path(), reader)
 	// note: even on error, we should always run cleanup functions
 	defer cleanupFn()
@@ -49,7 +47,7 @@ func (grp *genericRPMWrappedJavaArchiveParser) parseRPMJavaArchive(
 	var packages []pkg.Package
 	var relationships []artifact.Relationship
 	for _, rpmPackage := range rpmPackages {
-		_packages, _relationships, err := discoverPkgsFromRPM(reader.Location, archivePath, contentPath, &rpmPackage, grp.cfg)
+		_packages, _relationships, err := discoverPkgsFromRPM(reader.Location, archivePath, contentPath, rpmPackage, grp.cfg)
 		if err == nil {
 			packages = append(packages, _packages...)
 			relationships = append(relationships, _relationships...)
@@ -59,7 +57,7 @@ func (grp *genericRPMWrappedJavaArchiveParser) parseRPMJavaArchive(
 }
 
 func discoverPkgsFromRPM(
-	location source.Location, archivePath, contentPath string, parentPkg *pkg.Package, cfg ArchiveCatalogerConfig,
+	location file.Location, archivePath, contentPath string, parentPkg pkg.Package, cfg ArchiveCatalogerConfig,
 ) ([]pkg.Package, []artifact.Relationship, error) {
 	openers, err := internalFile.ExtractGlobsFromRPMToUniqueTempFile(archivePath, contentPath, archiveFormatGlobs...)
 	if err != nil {
@@ -67,7 +65,7 @@ func discoverPkgsFromRPM(
 	}
 
 	var relationships []artifact.Relationship
-	_packages, _, err := discoverPkgsFromOpeners(location, openers, parentPkg, cfg)
+	_packages, _, err := discoverPkgsFromOpeners(location, openers, &parentPkg, cfg)
 	if err == nil {
 		for index := range _packages {
 			id := _packages[index].ID()
@@ -75,13 +73,12 @@ func discoverPkgsFromRPM(
 				_packages[index].SetID()
 			}
 			_relationship := artifact.Relationship{
-				From: *parentPkg,
+				From: parentPkg,
 				To:   _packages[index],
 				Type: artifact.ContainsRelationship,
 			}
 			relationships = append(relationships, _relationship)
 		}
-
 	}
 	return _packages, relationships, err
 }

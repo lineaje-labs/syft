@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/anchore/syft/syft/file"
-	"github.com/anchore/syft/syft/internal/sourcemetadata"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/syft/internal/sourcemetadata"
 )
 
 func TestSource_UnmarshalJSON(t *testing.T) {
@@ -34,7 +34,7 @@ func TestSource_UnmarshalJSON(t *testing.T) {
 				Type: "directory",
 				Metadata: source.DirectorySourceMetadata{
 					Path: "/var/lib/foo",
-					//Base: "/nope", // note: should be ignored entirely
+					// Base: "/nope", // note: should be ignored entirely
 				},
 			},
 		},

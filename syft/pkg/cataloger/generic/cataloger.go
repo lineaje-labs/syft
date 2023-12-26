@@ -1,12 +1,12 @@
 package generic
 
 import (
-	"github.com/anchore/syft/internal"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
+	"github.com/lineaje-labs/syft/internal"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 type processor func(resolver file.Resolver, env Environment) []request

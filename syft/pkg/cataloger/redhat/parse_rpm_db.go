@@ -7,16 +7,18 @@ import (
 
 	rpmdb "github.com/knqyf263/go-rpmdb/pkg"
 
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 // parseRpmDb parses an "Packages" RPM DB and returns the Packages listed within it.
-func parseRpmDB(resolver file.Resolver, env *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
+func parseRpmDB(
+	resolver file.Resolver, env *generic.Environment, reader file.LocationReadCloser,
+) ([]pkg.Package, []artifact.Relationship, error) {
 	f, err := os.CreateTemp("", "rpmdb")
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create temp rpmdb file: %w", err)
@@ -28,7 +30,6 @@ func parseRpmDB(resolver file.Resolver, env *generic.Environment, reader file.Lo
 			log.Errorf("failed to remove temp rpmdb file: %+v", err)
 		}
 	}()
-
 	_, err = io.Copy(f, reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to copy rpmdb contents to temp file: %w", err)
@@ -45,7 +46,6 @@ func parseRpmDB(resolver file.Resolver, env *generic.Environment, reader file.Lo
 	}
 
 	var allPkgs []pkg.Package
-
 	var distro *linux.Release
 	if env != nil {
 		distro = env.LinuxRelease

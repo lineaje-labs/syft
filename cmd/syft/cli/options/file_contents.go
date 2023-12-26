@@ -1,8 +1,8 @@
 package options
 
 import (
-	"github.com/anchore/syft/internal/file"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/internal/file"
 )
 
 type fileContents struct {

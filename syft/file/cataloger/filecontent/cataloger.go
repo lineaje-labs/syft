@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/anchore/syft/internal"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
+	"github.com/lineaje-labs/syft/internal"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 type Cataloger struct {

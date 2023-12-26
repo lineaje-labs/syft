@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/anchore/syft/internal/log"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 // CloseAndLogError closes the given io.Closer and reports any errors found as a warning in the log

@@ -6,7 +6,7 @@ import (
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/anchore/syft/syft/pkg/cataloger/internal/pkgtest"
+	"github.com/lineaje-labs/syft/syft/pkg/cataloger/internal/pkgtest"
 )
 
 func TestParseStackLock(t *testing.T) {

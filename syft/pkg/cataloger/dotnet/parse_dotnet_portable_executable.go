@@ -9,16 +9,18 @@ import (
 	"github.com/saferwall/pe"
 
 	"github.com/anchore/packageurl-go"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ generic.Parser = parseDotnetPortableExecutable
 
-func parseDotnetPortableExecutable(_ file.Resolver, _ *generic.Environment, f file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
+func parseDotnetPortableExecutable(
+	_ file.Resolver, _ *generic.Environment, f file.LocationReadCloser,
+) ([]pkg.Package, []artifact.Relationship, error) {
 	by, err := io.ReadAll(f)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to read file: %w", err)

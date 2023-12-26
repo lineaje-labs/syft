@@ -40,6 +40,7 @@ func ExternalRefs(p pkg.Package) (externalRefs []ExternalRef) {
 				}
 			}
 		}
+	default:
 	}
 
 	return externalRefs

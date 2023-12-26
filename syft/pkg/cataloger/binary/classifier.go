@@ -12,12 +12,12 @@ import (
 	"text/template"
 
 	"github.com/anchore/packageurl-go"
-	"github.com/anchore/syft/internal"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/cpe"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/anchore/syft/syft/pkg/cataloger/internal/unionreader"
+	"github.com/lineaje-labs/syft/internal"
+	"github.com/lineaje-labs/syft/internal/log"
+	"github.com/lineaje-labs/syft/syft/pkg/cataloger/internal/unionreader"
 )
 
 var emptyPURL = packageurl.PackageURL{}
@@ -138,7 +138,9 @@ func fileContentsVersionMatcher(pattern string) evidenceMatcher {
 //nolint:gocognit
 func sharedLibraryLookup(sharedLibraryPattern string, sharedLibraryMatcher evidenceMatcher) evidenceMatcher {
 	pat := regexp.MustCompile(sharedLibraryPattern)
-	return func(resolver file.Resolver, classifier classifier, location file.Location) (packages []pkg.Package, _ error) {
+	return func(
+		resolver file.Resolver, classifier classifier, location file.Location,
+	) (packages []pkg.Package, _ error) {
 		libs, err := sharedLibraries(resolver, location)
 		if err != nil {
 			return nil, err

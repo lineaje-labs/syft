@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/anchore/syft/internal/log"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 // FieldName return a flag to indicate this is a valid field and a name to use

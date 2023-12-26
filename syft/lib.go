@@ -22,19 +22,21 @@ import (
 	"github.com/wagoodman/go-partybus"
 
 	"github.com/anchore/go-logger"
-	"github.com/anchore/syft/internal/bus"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/internal/bus"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 // CatalogPackages takes an inventory of packages from the given image from a particular perspective
 // (e.g. squashed source, all-layers source). Returns the discovered  set of packages, the identified Linux
 // distribution, and the source object used to wrap the data source.
-func CatalogPackages(src source.Source, cfg cataloger.Config) (*pkg.Collection, []artifact.Relationship, *linux.Release, error) {
+func CatalogPackages(
+	src source.Source, cfg cataloger.Config,
+) (*pkg.Collection, []artifact.Relationship, *linux.Release, error) {
 	resolver, err := src.FileResolver(cfg.Search.Scope)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("unable to determine resolver while cataloging packages: %w", err)

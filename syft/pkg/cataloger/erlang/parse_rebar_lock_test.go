@@ -6,7 +6,7 @@ import (
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/anchore/syft/syft/pkg/cataloger/internal/pkgtest"
+	"github.com/lineaje-labs/syft/syft/pkg/cataloger/internal/pkgtest"
 )
 
 func TestParseRebarLock(t *testing.T) {
@@ -113,7 +113,7 @@ func TestParseRebarLock(t *testing.T) {
 		{
 			fixture: "test-fixtures/rebar-2.lock",
 			expected: []pkg.Package{
-				//[{<<"bcrypt">>,{pkg,<<"bcrypt">>,<<"1.1.5">>},0},
+				// [{<<"bcrypt">>,{pkg,<<"bcrypt">>,<<"1.1.5">>},0},
 				// {<<"bcrypt">>, <<"A6763BD4E1AF46D34776F85B7995E63A02978DE110C077E9570ED17006E03386">>},
 				// {<<"bcrypt">>, <<"3418821BC17CE6E96A4A77D1A88D7485BF783E212069FACFC79510AFBFF95352">>},
 				{

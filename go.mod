@@ -1,4 +1,4 @@
-module github.com/anchore/syft
+module github.com/lineaje-labs/syft
 
 go 1.21.0
 
@@ -76,11 +76,13 @@ require (
 	modernc.org/sqlite v1.27.0
 )
 
+require github.com/anchore/syft v0.0.0-00010101000000-000000000000
+
 require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/AdamKorcz/go-118-fuzz-build v0.0.0-20230306123547-8075edf89bb0 // indirect
-	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
+	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
@@ -236,3 +238,5 @@ retract (
 	v0.53.2
 	v0.53.1 // Published accidentally with incorrect license in depdencies
 )
+
+replace github.com/anchore/syft => github.com/lineaje-labs/syft v0.98.0-1-lineaje

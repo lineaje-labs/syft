@@ -11,7 +11,6 @@ import (
 
 	"github.com/anchore/clio"
 	"github.com/anchore/fangs"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/cataloging"
 	"github.com/anchore/syft/syft/pkg/cataloger"
 	golangCataloger "github.com/anchore/syft/syft/pkg/cataloger/golang"
@@ -19,6 +18,7 @@ import (
 	"github.com/anchore/syft/syft/pkg/cataloger/kernel"
 	pythonCataloger "github.com/anchore/syft/syft/pkg/cataloger/python"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 type Catalog struct {

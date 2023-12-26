@@ -13,10 +13,10 @@ import (
 	"github.com/anchore/stereoscope"
 	"github.com/anchore/syft/cmd/syft/cli/commands"
 	handler "github.com/anchore/syft/cmd/syft/cli/ui"
-	"github.com/anchore/syft/cmd/syft/internal/ui"
-	"github.com/anchore/syft/internal/bus"
-	"github.com/anchore/syft/internal/log"
-	"github.com/anchore/syft/internal/redact"
+	"github.com/lineaje-labs/syft/cmd/syft/internal/ui"
+	"github.com/lineaje-labs/syft/internal/bus"
+	"github.com/lineaje-labs/syft/internal/log"
+	"github.com/lineaje-labs/syft/internal/redact"
 )
 
 // Application constructs the `syft packages` command and aliases the root command to `syft packages`.
@@ -37,9 +37,9 @@ func Command(id clio.Identification) *cobra.Command {
 
 func create(id clio.Identification, out io.Writer) (clio.Application, *cobra.Command) {
 	clioCfg := clio.NewSetupConfig(id).
-		WithGlobalConfigFlag(). // add persistent -c <path> for reading an application config from
+		WithGlobalConfigFlag().   // add persistent -c <path> for reading an application config from
 		WithGlobalLoggingFlags(). // add persistent -v and -q flags tied to the logging config
-		WithConfigInRootHelp(). // --help on the root command renders the full application config in the help text
+		WithConfigInRootHelp().   // --help on the root command renders the full application config in the help text
 		WithUIConstructor(
 			// select a UI based on the logging configuration and state of stdin (if stdin is a tty)
 			func(cfg clio.Config) ([]clio.UI, error) {
@@ -72,30 +72,8 @@ func create(id clio.Identification, out io.Writer) (clio.Application, *cobra.Com
 			},
 		).
 		WithPostRuns(func(state *clio.State, err error) {
-			// Do not run cleanup if it is disabled. This option is unexported so reflection is used to get the value set
-			var cleanupDisabled bool
-			for _, configObj := range state.Config.FromCommands {
-				if reflect.TypeOf(configObj).String() == "*commands.packagesOptions" { // Cleanup option is part of packageOptions
-					configObjData := reflect.ValueOf(configObj)
-					if configObjData.Kind() == reflect.Ptr && configObjData.Elem().Kind() == reflect.Struct {
-						configObjData = configObjData.Elem()
-					} else {
-						continue
-					}
-					for i := 0; i < configObjData.NumField(); i++ {
-						field := configObjData.Field(i)
-						if field.Type().Name() == "Catalog" { // Cleanup option is part of Catalog
-							catalogData, ok := field.Interface().(options.Catalog)
-							if ok {
-								cleanupDisabled = catalogData.CleanupDisabled
-							}
-							break
-						}
-					}
-					break
-				}
-			}
-			if !cleanupDisabled {
+			// Do not run cleanup if it is disabled
+			if !isCleanupDisabled(state) {
 				stereoscope.Cleanup()
 			}
 		})
@@ -122,4 +100,30 @@ func create(id clio.Identification, out io.Writer) (clio.Application, *cobra.Com
 	rootCmd.SetOut(out)
 
 	return app, rootCmd
+}
+
+// isCleanupDisabled checks if the cleanup option is disabled in the provided state object.
+// This option is unexported so reflection is used to get the value set.
+func isCleanupDisabled(state *clio.State) bool {
+	var cleanupDisabled bool
+	for _, configObj := range state.Config.FromCommands {
+		if reflect.TypeOf(configObj).String() == "*commands.packagesOptions" { // Cleanup option is part of packageOptions
+			configObjData := reflect.ValueOf(configObj)
+			if configObjData.Kind() == reflect.Ptr && configObjData.Elem().Kind() == reflect.Struct {
+				configObjData = configObjData.Elem()
+				for i := 0; i < configObjData.NumField(); i++ {
+					field := configObjData.Field(i)
+					if field.Type().Name() == "Catalog" { // Cleanup option is part of Catalog
+						catalogData, ok := field.Interface().(options.Catalog)
+						if ok {
+							cleanupDisabled = catalogData.CleanupDisabled
+						}
+						break
+					}
+				}
+				break
+			}
+		}
+	}
+	return cleanupDisabled
 }

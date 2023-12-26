@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/anchore/syft/syft/internal/sourcemetadata"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/syft/internal/sourcemetadata"
 )
 
 // Source object represents the thing that was cataloged

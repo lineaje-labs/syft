@@ -13,13 +13,13 @@ import (
 	"io"
 	"unsafe"
 
-	"github.com/anchore/syft/internal"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/cpe"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/anchore/syft/syft/pkg/cataloger/internal/unionreader"
+	"github.com/lineaje-labs/syft/internal"
+	"github.com/lineaje-labs/syft/internal/log"
+	"github.com/lineaje-labs/syft/syft/pkg/cataloger/internal/unionreader"
 )
 
 type nativeImageCycloneDX struct {

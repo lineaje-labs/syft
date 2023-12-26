@@ -3,8 +3,8 @@ package cyclonedxjson
 import (
 	"github.com/CycloneDX/cyclonedx-go"
 
-	"github.com/anchore/syft/syft/format/internal/cyclonedxutil"
 	"github.com/anchore/syft/syft/sbom"
+	"github.com/lineaje-labs/syft/syft/format/internal/cyclonedxutil"
 )
 
 const ID = cyclonedxutil.JSONFormatID

@@ -7,7 +7,7 @@ import (
 
 	"github.com/github/go-spdx/v2/spdxexp"
 
-	"github.com/anchore/syft/internal/spdxlicense"
+	"github.com/lineaje-labs/syft/internal/spdxlicense"
 )
 
 type Type string

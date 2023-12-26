@@ -7,9 +7,9 @@ import (
 
 	"github.com/CycloneDX/cyclonedx-go"
 
-	"github.com/anchore/syft/internal/file"
 	syftFile "github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
+	"github.com/lineaje-labs/syft/internal/file"
 )
 
 //nolint:gocognit

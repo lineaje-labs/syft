@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/pkg"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 const manifestGlob = "/META-INF/MANIFEST.MF"

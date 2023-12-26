@@ -3,7 +3,7 @@ package php
 import (
 	"testing"
 
-	"github.com/anchore/syft/syft/pkg/cataloger/internal/pkgtest"
+	"github.com/lineaje-labs/syft/syft/pkg/cataloger/internal/pkgtest"
 )
 
 func Test_ComposerInstalledCataloger_Globs(t *testing.T) {

@@ -13,10 +13,10 @@ import (
 	"github.com/facebookincubator/nvdtools/wfn"
 	"github.com/scylladb/go-set/strset"
 
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/cpe"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/common/cpe/dictionary"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 // knownVendors contains vendor strings that are known to exist in

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ generic.Parser = parseDotnetDeps
@@ -37,7 +37,9 @@ type dotnetDepsLibrary struct {
 }
 
 //nolint:funlen
-func parseDotnetDeps(_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
+func parseDotnetDeps(
+	_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser,
+) ([]pkg.Package, []artifact.Relationship, error) {
 	var pkgs []pkg.Package
 	var pkgMap = make(map[string]pkg.Package)
 	var relationships []artifact.Relationship
