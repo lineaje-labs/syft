@@ -3,10 +3,12 @@ package internal
 import (
 	"io"
 	"os"
+	"reflect"
 
 	"github.com/anchore/clio"
 	"github.com/anchore/stereoscope"
 	handler "github.com/anchore/syft/cmd/syft/cli/ui"
+	"github.com/anchore/syft/cmd/syft/internal/options"
 	"github.com/anchore/syft/cmd/syft/internal/ui"
 	"github.com/anchore/syft/internal/bus"
 	"github.com/anchore/syft/internal/log"
@@ -51,7 +53,10 @@ func AppClioSetupConfig(id clio.Identification, out io.Writer) *clio.SetupConfig
 			},
 		).
 		WithPostRuns(func(state *clio.State, _ error) {
-			stereoscope.Cleanup() //nolint:staticcheck // we don't have access to the image object here
+			// Do not run cleanup if it is disabled.
+			if !isCleanupDisabled(state) {
+				stereoscope.Cleanup() //nolint:staticcheck // we don't have access to the image object here
+			}
 
 			// release the redact store now that nothing in this run can report anymore, so a later run in the same
 			// process (e.g. syft embedded as a library) can set its own. Only release the store this run set.
@@ -60,4 +65,32 @@ func AppClioSetupConfig(id clio.Identification, out io.Writer) *clio.SetupConfig
 			}
 		})
 	return clioCfg
+}
+
+// isCleanupDisabled checks if the cleanup option is disabled in the provided state object.
+// This option is unexported so reflection is used to get the value set.
+func isCleanupDisabled(state *clio.State) bool {
+	var cleanupDisabled bool
+	for _, configObj := range state.Config.FromCommands {
+		if reflect.TypeOf(configObj).String() == "*commands.scanOptions" { // Cleanup option is part of packageOptions
+			configObjData := reflect.ValueOf(configObj)
+			if configObjData.Kind() == reflect.Ptr && configObjData.Elem().Kind() == reflect.Struct {
+				configObjData = configObjData.Elem()
+			} else {
+				continue
+			}
+			for i := 0; i < configObjData.NumField(); i++ {
+				field := configObjData.Field(i)
+				if field.Type().Name() == "Catalog" { // Cleanup option is part of Catalog
+					catalogData, ok := field.Interface().(options.Catalog)
+					if ok {
+						cleanupDisabled = catalogData.CleanupDisabled
+					}
+					break
+				}
+			}
+			break
+		}
+	}
+	return cleanupDisabled
 }

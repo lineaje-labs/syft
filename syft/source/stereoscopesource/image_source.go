@@ -132,10 +132,8 @@ func (s stereoscopeImageSource) ExcludedPaths() []string {
 }
 
 func (s stereoscopeImageSource) Close() error {
-	if s.image == nil {
-		return nil
-	}
-	return s.image.Cleanup()
+	// Do not call cleanup here. It is instead called when enabled as a command line option
+	return nil
 }
 
 func imageMetadataFromStereoscopeImage(img *image.Image, reference string) source.ImageMetadata {
