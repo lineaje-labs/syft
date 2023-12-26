@@ -26,6 +26,7 @@ type CreateSBOMConfig struct {
 	Packages           pkgcataloging.Config
 	Files              filecataloging.Config
 	Parallelism        int
+	CleanupDisabled    bool
 	CatalogerSelection pkgcataloging.SelectionRequest
 
 	// audit what tool is being used to generate the SBOM
@@ -98,6 +99,12 @@ func (c *CreateSBOMConfig) WithParallelism(p int) *CreateSBOMConfig {
 // WithComplianceConfig allows for setting the specific compliance configuration for cataloging.
 func (c *CreateSBOMConfig) WithComplianceConfig(cfg cataloging.ComplianceConfig) *CreateSBOMConfig {
 	c.Compliance = cfg
+	return c
+}
+
+// WithCleanupDisabled allows for setting if cleanup is to be performed at the end of the SBOM generation
+func (c *CreateSBOMConfig) WithCleanupDisabled(disabled bool) *CreateSBOMConfig {
+	c.CleanupDisabled = disabled
 	return c
 }
 
