@@ -38,7 +38,9 @@ var archiveFormatGlobs = []string{
 
 // javaArchiveHashes are all the current hash algorithms used to calculate archive digests
 var javaArchiveHashes = []crypto.Hash{
+	crypto.MD5,
 	crypto.SHA1,
+	crypto.SHA256,
 }
 
 type archiveParser struct {
