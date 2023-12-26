@@ -60,6 +60,7 @@ type Catalog struct {
 
 	// configuration for inclusion of unknown information within elements
 	Unknowns unknownsConfig `yaml:"unknowns" mapstructure:"unknowns"`
+	CleanupDisabled bool           `yaml:"cleanup-disabled" json:"cleanup-disabled" mapstructure:"cleanup-disabled"`
 }
 
 var _ interface {
@@ -87,6 +88,7 @@ func DefaultCatalog() Catalog {
 		Unknowns:      defaultUnknowns(),
 		Source:        defaultSourceConfig(),
 		Parallelism:   cfg.Parallelism,
+		CleanupDisabled: false,
 	}
 }
 
@@ -94,6 +96,7 @@ func (cfg Catalog) ToSBOMConfig(id clio.Identification) *syft.CreateSBOMConfig {
 	return syft.DefaultCreateSBOMConfig().
 		WithTool(id.Name, id.Version).
 		WithParallelism(cfg.Parallelism).
+		WithCleanupDisabled(cfg.CleanupDisabled).
 		WithRelationshipsConfig(cfg.ToRelationshipsConfig()).
 		WithComplianceConfig(cfg.ToComplianceConfig()).
 		WithUnknownsConfig(cfg.ToUnknownsConfig()).
@@ -248,6 +251,9 @@ func (cfg *Catalog) AddFlags(flags clio.FlagSet) {
 
 	flags.StringVarP(&cfg.Source.Supplier, "source-supplier", "",
 		"the organization that supplied the component, which often may be the manufacturer, distributor, or repackager")
+
+	flags.BoolVarP(&cfg.CleanupDisabled, "cleanup-disabled", "",
+		"do not clean any temporary directories created during sbom generation (default false)")
 }
 
 func (cfg *Catalog) DescribeFields(descriptions fangs.FieldDescriptionSet) {
