@@ -23,5 +23,24 @@ func ExternalRefs(p pkg.Package) (externalRefs []ExternalRef) {
 		})
 	}
 
+	switch meta := p.Metadata.(type) {
+	// Java packages may specify the bazel label used to build it
+	case pkg.JavaArchive:
+		if meta.Manifest != nil {
+			if createdBy, createdByFound := meta.Manifest.Main.Get("Created-By"); createdByFound {
+				if createdBy == "bazel" {
+					if targetLabel, targetLabelFound := meta.Manifest.Main.Get("Target-Label"); targetLabelFound {
+						externalRefs = append(externalRefs, ExternalRef{
+							ReferenceCategory: OtherReferenceCategory,
+							ReferenceLocator:  targetLabel,
+							ReferenceType:     BazelLabelExternalRefType,
+						})
+					}
+				}
+			}
+		}
+	default:
+	}
+
 	return externalRefs
 }
