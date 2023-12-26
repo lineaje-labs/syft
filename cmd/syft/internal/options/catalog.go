@@ -45,11 +45,12 @@ type Catalog struct {
 	Python      pythonConfig      `yaml:"python" json:"python" mapstructure:"python"`
 
 	// configuration for the source (the subject being analyzed)
-	Registry   registryConfig `yaml:"registry" json:"registry" mapstructure:"registry"`
-	From       []string       `yaml:"from" json:"from" mapstructure:"from"`
-	Platform   string         `yaml:"platform" json:"platform" mapstructure:"platform"`
-	Source     sourceConfig   `yaml:"source" json:"source" mapstructure:"source"`
-	Exclusions []string       `yaml:"exclude" json:"exclude" mapstructure:"exclude"`
+	Registry        registryConfig `yaml:"registry" json:"registry" mapstructure:"registry"`
+	From            []string       `yaml:"from" json:"from" mapstructure:"from"`
+	Platform        string         `yaml:"platform" json:"platform" mapstructure:"platform"`
+	Source          sourceConfig   `yaml:"source" json:"source" mapstructure:"source"`
+	Exclusions      []string       `yaml:"exclude" json:"exclude" mapstructure:"exclude"`
+	CleanupDisabled bool           `yaml:"cleanup-disabled" json:"cleanup-disabled" mapstructure:"cleanup-disabled"`
 }
 
 var _ interface {
@@ -60,14 +61,15 @@ var _ interface {
 
 func DefaultCatalog() Catalog {
 	return Catalog{
-		Scope:         source.SquashedScope.String(),
-		Package:       defaultPackageConfig(),
-		LinuxKernel:   defaultLinuxKernelConfig(),
-		Golang:        defaultGolangConfig(),
-		File:          defaultFileConfig(),
-		Relationships: defaultRelationshipsConfig(),
-		Source:        defaultSourceConfig(),
-		Parallelism:   1,
+		Scope:           source.SquashedScope.String(),
+		Package:         defaultPackageConfig(),
+		LinuxKernel:     defaultLinuxKernelConfig(),
+		Golang:          defaultGolangConfig(),
+		File:            defaultFileConfig(),
+		Relationships:   defaultRelationshipsConfig(),
+		Source:          defaultSourceConfig(),
+		Parallelism:     1,
+		CleanupDisabled: false,
 	}
 }
 
@@ -75,6 +77,7 @@ func (cfg Catalog) ToSBOMConfig(id clio.Identification) *syft.CreateSBOMConfig {
 	return syft.DefaultCreateSBOMConfig().
 		WithTool(id.Name, id.Version).
 		WithParallelism(cfg.Parallelism).
+		WithCleanupDisabled(cfg.CleanupDisabled).
 		WithRelationshipsConfig(cfg.ToRelationshipsConfig()).
 		WithSearchConfig(cfg.ToSearchConfig()).
 		WithPackagesConfig(cfg.ToPackagesConfig()).
@@ -198,6 +201,9 @@ func (cfg *Catalog) AddFlags(flags clio.FlagSet) {
 
 	flags.StringVarP(&cfg.Source.BasePath, "base-path", "",
 		"base directory for scanning, no links will be followed above this directory, and all paths will be reported relative to this directory")
+
+	flags.BoolVarP(&cfg.CleanupDisabled, "cleanup-disabled", "",
+		"do not clean any temporary directories created during sbom generation (default false)")
 }
 
 func (cfg *Catalog) DescribeFields(descriptions fangs.FieldDescriptionSet) {
