@@ -55,7 +55,9 @@ var archiveFormatGlobs = []string{
 
 // javaArchiveHashes are all the current hash algorithms used to calculate archive digests
 var javaArchiveHashes = []crypto.Hash{
+	crypto.MD5,
 	crypto.SHA1,
+	crypto.SHA256,
 }
 
 // archiveParser reads one java archive, whether this cataloger opened the archive file or the archive
