@@ -39,6 +39,7 @@ type Catalog struct {
 	DefaultImagePullSource          string       `yaml:"default-image-pull-source" json:"default-image-pull-source" mapstructure:"default-image-pull-source"`                               // specify default image pull source
 	BasePath                        string       `yaml:"base-path" json:"base-path" mapstructure:"base-path"`                                                                               // specify base path for all file paths
 	ExcludeBinaryOverlapByOwnership bool         `yaml:"exclude-binary-overlap-by-ownership" json:"exclude-binary-overlap-by-ownership" mapstructure:"exclude-binary-overlap-by-ownership"` // exclude synthetic binary packages owned by os package files
+	CleanupDisabled                 bool         `yaml:"cleanup-disabled" json:"cleanup-disabled" mapstructure:"cleanup-disabled"`
 }
 
 var _ interface {
@@ -55,6 +56,7 @@ func DefaultCatalog() Catalog {
 		Source:                          defaultSourceCfg(),
 		Parallelism:                     1,
 		ExcludeBinaryOverlapByOwnership: true,
+		CleanupDisabled:                 false,
 	}
 }
 
@@ -91,6 +93,9 @@ func (cfg *Catalog) AddFlags(flags clio.FlagSet) {
 
 	flags.StringVarP(&cfg.BasePath, "base-path", "",
 		"base directory for scanning, no links will be followed above this directory, and all paths will be reported relative to this directory")
+
+	flags.BoolVarP(&cfg.CleanupDisabled, "cleanup-disabled", "",
+		"do not clean any temporary directories created during sbom generation (default false)")
 }
 
 func (cfg *Catalog) PostLoad() error {
@@ -149,6 +154,7 @@ func (cfg Catalog) ToCatalogerConfig() cataloger.Config {
 			GuessUnpinnedRequirements: cfg.Python.GuessUnpinnedRequirements,
 		},
 		ExcludeBinaryOverlapByOwnership: cfg.ExcludeBinaryOverlapByOwnership,
+		CleanupDisabled:                 cfg.CleanupDisabled,
 	}
 }
 

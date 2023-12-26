@@ -18,6 +18,7 @@ type Config struct {
 	Catalogers                      []string
 	Parallelism                     int
 	ExcludeBinaryOverlapByOwnership bool
+	CleanupDisabled                 bool
 }
 
 func DefaultConfig() Config {

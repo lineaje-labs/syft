@@ -3,7 +3,9 @@ package cli
 import (
 	"io"
 	"os"
+	"reflect"
 
+	"github.com/anchore/syft/cmd/syft/cli/options"
 	cranecmd "github.com/google/go-containerregistry/cmd/crane/cmd"
 	"github.com/spf13/cobra"
 
@@ -35,9 +37,9 @@ func Command(id clio.Identification) *cobra.Command {
 
 func create(id clio.Identification, out io.Writer) (clio.Application, *cobra.Command) {
 	clioCfg := clio.NewSetupConfig(id).
-		WithGlobalConfigFlag().   // add persistent -c <path> for reading an application config from
+		WithGlobalConfigFlag(). // add persistent -c <path> for reading an application config from
 		WithGlobalLoggingFlags(). // add persistent -v and -q flags tied to the logging config
-		WithConfigInRootHelp().   // --help on the root command renders the full application config in the help text
+		WithConfigInRootHelp(). // --help on the root command renders the full application config in the help text
 		WithUIConstructor(
 			// select a UI based on the logging configuration and state of stdin (if stdin is a tty)
 			func(cfg clio.Config) ([]clio.UI, error) {
@@ -70,7 +72,32 @@ func create(id clio.Identification, out io.Writer) (clio.Application, *cobra.Com
 			},
 		).
 		WithPostRuns(func(state *clio.State, err error) {
-			stereoscope.Cleanup()
+			// Do not run cleanup if it is disabled. This option is unexported so reflection is used to get the value set
+			var cleanupDisabled bool
+			for _, configObj := range state.Config.FromCommands {
+				if reflect.TypeOf(configObj).String() == "*commands.packagesOptions" { // Cleanup option is part of packageOptions
+					configObjData := reflect.ValueOf(configObj)
+					if configObjData.Kind() == reflect.Ptr && configObjData.Elem().Kind() == reflect.Struct {
+						configObjData = configObjData.Elem()
+					} else {
+						continue
+					}
+					for i := 0; i < configObjData.NumField(); i++ {
+						field := configObjData.Field(i)
+						if field.Type().Name() == "Catalog" { // Cleanup option is part of Catalog
+							catalogData, ok := field.Interface().(options.Catalog)
+							if ok {
+								cleanupDisabled = catalogData.CleanupDisabled
+							}
+							break
+						}
+					}
+					break
+				}
+			}
+			if !cleanupDisabled {
+				stereoscope.Cleanup()
+			}
 		})
 
 	app := clio.New(*clioCfg)
