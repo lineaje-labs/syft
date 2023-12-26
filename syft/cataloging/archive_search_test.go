@@ -10,7 +10,7 @@ func TestDefaultArchiveSearchConfig(t *testing.T) {
 	cfg := DefaultArchiveSearchConfig()
 
 	assert.True(t, cfg.IncludeIndexedArchives)
-	assert.False(t, cfg.IncludeUnindexedArchives)
+	assert.True(t, cfg.IncludeUnindexedArchives)
 	assert.Equal(t, DefaultArchiveMaxDepth, cfg.MaxDepth)
 	assert.Equal(t, int64(DefaultArchiveMaxMemoryBytes), cfg.MaxMemoryBytes)
 	assert.Equal(t, int64(DefaultArchiveMaxDiskBytes), cfg.MaxDiskBytes)

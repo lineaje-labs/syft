@@ -29,6 +29,8 @@ const (
 	PurlExternalRefType ExternalRefType = "purl"
 	// These point to objects present in the Software Heritage archive by the means of SoftWare Heritage persistent Identifiers (SWHID)
 	SwhExternalRefType ExternalRefType = "swh"
+	// BazelLabelExternalRefType point to label used by Bazel for building
+	BazelLabelExternalRefType ExternalRefType = "LocationRef-pkgmgr-bazel-label"
 )
 
 type ExternalRef struct {

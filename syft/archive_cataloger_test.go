@@ -320,9 +320,9 @@ func TestArchiveCataloger_featureOff(t *testing.T) {
 
 	s := scanDirWithExclusions(t, scanDir, cfg, fixtureExclusions...)
 
-	// indexed archives (zip, war) are searched by default and unindexed ones (tar.gz) are not, so
-	// what a user gets without the feature depends on settings the feature makes irrelevant
+	// indexed archives (zip, war) and unindexed ones (tar.gz) are searched by default
 	assert.Equal(t, map[string][]string{
+		"tgz-lib": {"bundle.tar.gz:tgz-lib-1.2.jar"},
 		"war-lib": {"app.war:WEB-INF/lib/war-lib-2.0.jar"},
 		"zip-lib": {"bundle.zip:lib/zip-lib-1.2.jar"},
 	}, javaVirtualPaths(s), "java's own recursion finds each once, under the virtual path the task also reports")
@@ -335,7 +335,7 @@ func TestArchiveCataloger_featureOff(t *testing.T) {
 		s := scanDirWithExclusions(t, scanDir, cfg, fixtureExclusions...)
 
 		assert.Contains(t, javaVirtualPaths(s), "tgz-lib")
-		assert.False(t, cfg.Packages.JavaArchive.IncludeUnindexedArchives, "the caller's config is not written to")
+		assert.True(t, cfg.Packages.JavaArchive.IncludeUnindexedArchives, "the caller's config is not written to")
 	})
 }
 

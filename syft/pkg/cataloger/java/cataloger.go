@@ -37,6 +37,9 @@ func NewArchiveCataloger(cfg ArchiveCatalogerConfig) pkg.Cataloger {
 		// java archives wrapped within tar files
 		gtp := newGenericTarWrappedJavaArchiveParser(cfg)
 		c.WithParserByGlobs(gtp.parseTarWrappedJavaArchive, genericTarGlobs...)
+		// java archives wrapped within rpm files
+		grp := newGenericRPMWrappedJavaArchiveParser(cfg)
+		c.WithParserByGlobs(grp.parseRPMJavaArchive, genericRpmGlobs...)
 	}
 
 	return &archiveCataloger{cfg: cfg, extractingCataloger: c}

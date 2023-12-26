@@ -40,7 +40,7 @@ type ArchiveSearchConfig struct {
 func DefaultArchiveSearchConfig() ArchiveSearchConfig {
 	return ArchiveSearchConfig{
 		IncludeIndexedArchives:   true,
-		IncludeUnindexedArchives: false,
+		IncludeUnindexedArchives: true,
 		MaxDepth:                 DefaultArchiveMaxDepth,
 		MaxMemoryBytes:           DefaultArchiveMaxMemoryBytes,
 		MaxDiskBytes:             DefaultArchiveMaxDiskBytes,

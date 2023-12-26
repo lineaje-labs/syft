@@ -62,6 +62,7 @@ func Test_ArchiveCataloger_Globs(t *testing.T) {
 			pkgtest.NewCatalogTester().
 				FromDirectory(t, test.fixture).
 				ExpectsResolverContentQueries(test.expected).
+				IgnoreUnfulfilledPathResponses("**/*.rpm").
 				TestCataloger(t,
 					NewArchiveCataloger(
 						ArchiveCatalogerConfig{
