@@ -13,11 +13,11 @@ import (
 	"github.com/opencontainers/go-digest"
 
 	stereoFile "github.com/anchore/stereoscope/pkg/file"
-	intFile "github.com/anchore/syft/internal/file"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
-	"github.com/anchore/syft/syft/internal/fileresolver"
+	intFile "github.com/lineaje-labs/syft/internal/file"
+	"github.com/lineaje-labs/syft/internal/log"
+	"github.com/lineaje-labs/syft/syft/internal/fileresolver"
 )
 
 var _ Source = (*FileSource)(nil)

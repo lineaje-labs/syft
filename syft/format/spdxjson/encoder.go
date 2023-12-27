@@ -11,8 +11,8 @@ import (
 	"github.com/spdx/tools-golang/spdx/v2/v2_3"
 
 	"github.com/anchore/syft/syft/format/common/spdxhelpers"
-	"github.com/anchore/syft/syft/format/internal/spdxutil"
 	"github.com/anchore/syft/syft/sbom"
+	"github.com/lineaje-labs/syft/syft/format/internal/spdxutil"
 )
 
 const ID = spdxutil.JSONFormatID

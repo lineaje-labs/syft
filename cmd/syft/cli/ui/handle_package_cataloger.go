@@ -8,9 +8,9 @@ import (
 	"github.com/wagoodman/go-progress"
 
 	"github.com/anchore/bubbly/bubbles/taskprogress"
-	"github.com/anchore/syft/internal/log"
 	syftEventParsers "github.com/anchore/syft/syft/event/parsers"
 	"github.com/anchore/syft/syft/pkg/cataloger"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ progress.StagedProgressable = (*packageCatalogerProgressAdapter)(nil)

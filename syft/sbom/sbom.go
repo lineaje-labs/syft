@@ -4,12 +4,12 @@ import (
 	"slices"
 	"sort"
 
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 type SBOM struct {

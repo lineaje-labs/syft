@@ -23,7 +23,7 @@ import (
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/license"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/anchore/syft/syft/pkg/cataloger/internal/pkgtest"
+	"github.com/lineaje-labs/syft/syft/pkg/cataloger/internal/pkgtest"
 )
 
 func generateJavaBuildFixture(t *testing.T, fixturePath string) {
@@ -203,22 +203,22 @@ func TestParseJar(t *testing.T) {
 								"Implementation-Title":   "Example Jenkins Plugin",
 								"Implementation-Version": "1.0-SNAPSHOT",
 								// extra fields...
-								//"Archiver-Version":    "Plexus Archiver",
+								// "Archiver-Version":    "Plexus Archiver",
 								"Plugin-License-Url":  "https://opensource.org/licenses/MIT",
 								"Plugin-License-Name": "MIT License",
 								"Created-By":          "Maven Archiver 3.6.0",
-								//"Built-By":            "?",
-								//"Build-Jdk":            "14.0.1",
+								// "Built-By":            "?",
+								// "Build-Jdk":            "14.0.1",
 								"Build-Jdk-Spec":  "18",
 								"Jenkins-Version": "2.204",
-								//"Minimum-Java-Version": "1.8",
+								// "Minimum-Java-Version": "1.8",
 								"Plugin-Developers": "",
 								"Plugin-ScmUrl":     "https://github.com/jenkinsci/plugin-pom/example-jenkins-plugin",
-								//"Extension-Name":      "example-jenkins-plugin",
+								// "Extension-Name":      "example-jenkins-plugin",
 								"Short-Name":          "example-jenkins-plugin",
 								"Group-Id":            "io.jenkins.plugins",
 								"Plugin-Dependencies": "structs:1.20",
-								//"Plugin-Version": "1.0-SNAPSHOT (private-07/09/2020 13:30-?)",
+								// "Plugin-Version": "1.0-SNAPSHOT (private-07/09/2020 13:30-?)",
 								"Hudson-Version": "2.204",
 								"Long-Name":      "Example Jenkins Plugin",
 							},
@@ -330,8 +330,8 @@ func TestParseJar(t *testing.T) {
 								// extra fields...
 								"Archiver-Version": "Plexus Archiver",
 								"Created-By":       "Apache Maven 3.8.6",
-								//"Built-By":         "?",
-								//"Build-Jdk":        "14.0.1",
+								// "Built-By":         "?",
+								// "Build-Jdk":        "14.0.1",
 								"Main-Class": "hello.HelloWorld",
 							},
 						},
@@ -1186,7 +1186,7 @@ func Test_parseJavaArchive_regressions(t *testing.T) {
 							},
 						},
 						// not under test
-						//ArchiveDigests: []file.Digest{{Algorithm: "sha1", Value: "d8bc1d9c428c96fe447e2c429fc4304d141024df"}},
+						// ArchiveDigests: []file.Digest{{Algorithm: "sha1", Value: "d8bc1d9c428c96fe447e2c429fc4304d141024df"}},
 					},
 				},
 			},
@@ -1240,7 +1240,7 @@ func Test_parseJavaArchive_regressions(t *testing.T) {
 							},
 						},
 						// not under test
-						//ArchiveDigests: []file.Digest{{Algorithm: "sha1", Value: "abd3e329270fc54a2acaceb45420fd5710ecefd5"}},
+						// ArchiveDigests: []file.Digest{{Algorithm: "sha1", Value: "abd3e329270fc54a2acaceb45420fd5710ecefd5"}},
 					},
 				},
 			},

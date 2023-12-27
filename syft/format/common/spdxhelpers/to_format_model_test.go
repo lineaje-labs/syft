@@ -14,10 +14,10 @@ import (
 
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
-	"github.com/anchore/syft/syft/internal/sourcemetadata"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/sbom"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/syft/internal/sourcemetadata"
 )
 
 func Test_toFormatModel(t *testing.T) {

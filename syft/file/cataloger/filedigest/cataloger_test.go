@@ -13,9 +13,9 @@ import (
 
 	stereoscopeFile "github.com/anchore/stereoscope/pkg/file"
 	"github.com/anchore/stereoscope/pkg/imagetest"
-	intFile "github.com/anchore/syft/internal/file"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/source"
+	intFile "github.com/lineaje-labs/syft/internal/file"
 )
 
 func testDigests(t testing.TB, root string, files []string, hashes ...crypto.Hash) map[file.Coordinates][]file.Digest {
@@ -114,9 +114,9 @@ func TestDigestsCataloger_MixFileTypes(t *testing.T) {
 			expected: "888c139e550867814eb7c33b84d76e4d",
 		},
 		// this is difficult to reproduce in a cross-platform way
-		//{
+		// {
 		//	path: "/hardlink-1",
-		//},
+		// },
 		{
 			path: "/symlink-1",
 		},

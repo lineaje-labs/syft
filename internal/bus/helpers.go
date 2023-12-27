@@ -4,8 +4,8 @@ import (
 	"github.com/wagoodman/go-partybus"
 
 	"github.com/anchore/clio"
-	"github.com/anchore/syft/internal/redact"
 	"github.com/anchore/syft/syft/event"
+	"github.com/lineaje-labs/syft/internal/redact"
 )
 
 func Exit() {

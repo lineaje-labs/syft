@@ -6,12 +6,15 @@ import (
 	"strings"
 
 	"github.com/anchore/packageurl-go"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
-func (c *goBinaryCataloger) newGoBinaryPackage(resolver file.Resolver, dep *debug.Module, mainModule, goVersion, architecture string, buildSettings map[string]string, cryptoSettings []string, locations ...file.Location) pkg.Package {
+func (c *goBinaryCataloger) newGoBinaryPackage(
+	resolver file.Resolver, dep *debug.Module, mainModule, goVersion, architecture string,
+	buildSettings map[string]string, cryptoSettings []string, locations ...file.Location,
+) pkg.Package {
 	if dep.Replace != nil {
 		dep = dep.Replace
 	}

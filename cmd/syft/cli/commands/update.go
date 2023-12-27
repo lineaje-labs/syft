@@ -12,11 +12,11 @@ import (
 	"github.com/anchore/clio"
 	hashiVersion "github.com/anchore/go-version"
 	"github.com/anchore/syft/cmd/syft/cli/options"
-	"github.com/anchore/syft/cmd/syft/internal"
-	"github.com/anchore/syft/internal/bus"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/event"
 	"github.com/anchore/syft/syft/event/parsers"
+	"github.com/lineaje-labs/syft/cmd/syft/internal"
+	"github.com/lineaje-labs/syft/internal/bus"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var latestAppVersionURL = struct {
@@ -27,7 +27,9 @@ var latestAppVersionURL = struct {
 	path: "/syft/releases/latest/VERSION",
 }
 
-func applicationUpdateCheck(id clio.Identification, check *options.UpdateCheck) func(cmd *cobra.Command, args []string) error {
+func applicationUpdateCheck(id clio.Identification, check *options.UpdateCheck) func(
+	cmd *cobra.Command, args []string,
+) error {
 	return func(cmd *cobra.Command, args []string) error {
 		if check.CheckForAppUpdate {
 			checkForApplicationUpdate(id)

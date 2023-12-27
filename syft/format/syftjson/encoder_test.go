@@ -10,15 +10,15 @@ import (
 	"github.com/stretchr/testify/require"
 
 	stereoFile "github.com/anchore/stereoscope/pkg/file"
-	"github.com/anchore/syft/internal"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/cpe"
 	"github.com/anchore/syft/syft/file"
-	"github.com/anchore/syft/syft/format/internal/testutil"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/sbom"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/internal"
+	"github.com/lineaje-labs/syft/syft/format/internal/testutil"
 )
 
 var updateSnapshot = flag.Bool("update-json", false, "update the *.golden files for json encoders")

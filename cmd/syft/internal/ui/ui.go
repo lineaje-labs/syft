@@ -14,9 +14,9 @@ import (
 	"github.com/anchore/bubbly/bubbles/frame"
 	"github.com/anchore/clio"
 	"github.com/anchore/go-logger"
-	"github.com/anchore/syft/internal/bus"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/event"
+	"github.com/lineaje-labs/syft/internal/bus"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ interface {

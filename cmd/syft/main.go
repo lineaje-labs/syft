@@ -5,7 +5,7 @@ import (
 
 	"github.com/anchore/clio"
 	"github.com/anchore/syft/cmd/syft/cli"
-	"github.com/anchore/syft/cmd/syft/internal"
+	"github.com/lineaje-labs/syft/cmd/syft/internal"
 )
 
 // applicationName is the non-capitalized name of the application (do not change this)

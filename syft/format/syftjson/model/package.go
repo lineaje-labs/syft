@@ -7,11 +7,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
-	"github.com/anchore/syft/syft/internal/packagemetadata"
 	"github.com/anchore/syft/syft/license"
 	"github.com/anchore/syft/syft/pkg"
+	"github.com/lineaje-labs/syft/internal/log"
+	"github.com/lineaje-labs/syft/syft/internal/packagemetadata"
 )
 
 var errUnknownMetadataType = errors.New("unknown metadata type")

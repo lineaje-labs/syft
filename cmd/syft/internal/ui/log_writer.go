@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/anchore/syft/internal/log"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 func newLogWriter() io.Writer {

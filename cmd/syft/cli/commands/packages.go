@@ -10,14 +10,14 @@ import (
 	"github.com/anchore/stereoscope/pkg/image"
 	"github.com/anchore/syft/cmd/syft/cli/eventloop"
 	"github.com/anchore/syft/cmd/syft/cli/options"
-	"github.com/anchore/syft/cmd/syft/internal/ui"
-	"github.com/anchore/syft/internal"
-	"github.com/anchore/syft/internal/bus"
-	"github.com/anchore/syft/internal/file"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/sbom"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/cmd/syft/internal/ui"
+	"github.com/lineaje-labs/syft/internal"
+	"github.com/lineaje-labs/syft/internal/bus"
+	"github.com/lineaje-labs/syft/internal/file"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 const (
@@ -147,7 +147,9 @@ func runPackages(id clio.Identification, opts *packagesOptions, userInput string
 	return nil
 }
 
-func getSource(opts *options.Catalog, userInput string, filters ...func(*source.Detection) error) (source.Source, error) {
+func getSource(
+	opts *options.Catalog, userInput string, filters ...func(*source.Detection) error,
+) (source.Source, error) {
 	detection, err := source.Detect(
 		userInput,
 		source.DetectConfig{

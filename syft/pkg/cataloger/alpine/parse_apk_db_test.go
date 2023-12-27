@@ -17,7 +17,7 @@ import (
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
-	"github.com/anchore/syft/syft/pkg/cataloger/internal/pkgtest"
+	"github.com/lineaje-labs/syft/syft/pkg/cataloger/internal/pkgtest"
 )
 
 func TestExtraFileAttributes(t *testing.T) {

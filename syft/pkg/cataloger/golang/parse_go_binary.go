@@ -15,13 +15,13 @@ import (
 
 	"golang.org/x/mod/module"
 
-	"github.com/anchore/syft/internal"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
-	"github.com/anchore/syft/syft/pkg/cataloger/golang/internal/xcoff"
-	"github.com/anchore/syft/syft/pkg/cataloger/internal/unionreader"
+	"github.com/lineaje-labs/syft/internal"
+	"github.com/lineaje-labs/syft/syft/pkg/cataloger/golang/internal/xcoff"
+	"github.com/lineaje-labs/syft/syft/pkg/cataloger/internal/unionreader"
 )
 
 const GOARCH = "GOARCH"
@@ -48,7 +48,9 @@ type goBinaryCataloger struct {
 }
 
 // parseGoBinary catalogs packages found in the "buildinfo" section of a binary built by the go compiler.
-func (c *goBinaryCataloger) parseGoBinary(resolver file.Resolver, _ *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
+func (c *goBinaryCataloger) parseGoBinary(
+	resolver file.Resolver, _ *generic.Environment, reader file.LocationReadCloser,
+) ([]pkg.Package, []artifact.Relationship, error) {
 	var pkgs []pkg.Package
 
 	unionReader, err := unionreader.GetUnionReader(reader.ReadCloser)
@@ -66,7 +68,9 @@ func (c *goBinaryCataloger) parseGoBinary(resolver file.Resolver, _ *generic.Env
 	return pkgs, nil, nil
 }
 
-func (c *goBinaryCataloger) makeGoMainPackage(resolver file.Resolver, mod *extendedBuildInfo, arch string, location file.Location) pkg.Package {
+func (c *goBinaryCataloger) makeGoMainPackage(
+	resolver file.Resolver, mod *extendedBuildInfo, arch string, location file.Location,
+) pkg.Package {
 	gbs := getBuildSettings(mod.Settings)
 	main := c.newGoBinaryPackage(
 		resolver,
@@ -101,7 +105,7 @@ func (c *goBinaryCataloger) makeGoMainPackage(resolver file.Resolver, mod *exten
 	if fullVersion != "" {
 		version = fullVersion
 	} else if hasVersion && hasTimestamp {
-		//NOTE: err is ignored, because if parsing fails
+		// NOTE: err is ignored, because if parsing fails
 		// we still use the empty Time{} struct to generate an empty date, like 00010101000000
 		// for consistency with the pseudo-version format: https://go.dev/ref/mod#pseudo-versions
 		ts, _ := time.Parse(time.RFC3339, timestamp)
@@ -220,7 +224,9 @@ func createMainModuleFromPath(path string) (mod debug.Module) {
 	return
 }
 
-func (c *goBinaryCataloger) buildGoPkgInfo(resolver file.Resolver, location file.Location, mod *extendedBuildInfo, arch string) []pkg.Package {
+func (c *goBinaryCataloger) buildGoPkgInfo(
+	resolver file.Resolver, location file.Location, mod *extendedBuildInfo, arch string,
+) []pkg.Package {
 	var pkgs []pkg.Package
 	if mod == nil {
 		return pkgs

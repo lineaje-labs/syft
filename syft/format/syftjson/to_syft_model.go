@@ -10,7 +10,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	stereoscopeFile "github.com/anchore/stereoscope/pkg/file"
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/cpe"
 	"github.com/anchore/syft/syft/file"
@@ -19,6 +18,7 @@ import (
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/sbom"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 func toSyftModel(doc model.Document) *sbom.SBOM {
@@ -193,7 +193,9 @@ func toSyftLinuxRelease(d model.LinuxRelease) *linux.Release {
 	}
 }
 
-func toSyftRelationships(doc *model.Document, catalog *pkg.Collection, relationships []model.Relationship, idAliases map[string]string) ([]artifact.Relationship, []error) {
+func toSyftRelationships(
+	doc *model.Document, catalog *pkg.Collection, relationships []model.Relationship, idAliases map[string]string,
+) ([]artifact.Relationship, []error) {
 	idMap := make(map[string]interface{})
 
 	for _, p := range catalog.Sorted() {
@@ -234,7 +236,9 @@ func toSyftSource(s model.Source) source.Source {
 	return source.FromDescription(*description)
 }
 
-func toSyftRelationship(idMap map[string]interface{}, relationship model.Relationship, idAliases map[string]string) (*artifact.Relationship, error) {
+func toSyftRelationship(
+	idMap map[string]interface{}, relationship model.Relationship, idAliases map[string]string,
+) (*artifact.Relationship, error) {
 	id := func(id string) string {
 		aliased, ok := idAliases[id]
 		if ok {

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/anchore/syft/internal/log"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ io.ReadSeekCloser = (*bufferedSeekReader)(nil)

@@ -7,7 +7,7 @@ import (
 
 	"github.com/anchore/clio"
 	hashiVersion "github.com/anchore/go-version"
-	"github.com/anchore/syft/cmd/syft/internal"
+	"github.com/lineaje-labs/syft/cmd/syft/internal"
 )
 
 func TestIsUpdateAvailable(t *testing.T) {

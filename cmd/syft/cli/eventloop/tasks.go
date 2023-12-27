@@ -2,7 +2,6 @@ package eventloop
 
 import (
 	"github.com/anchore/syft/cmd/syft/cli/options"
-	"github.com/anchore/syft/internal/file"
 	"github.com/anchore/syft/syft"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file/cataloger/filecontent"
@@ -10,6 +9,7 @@ import (
 	"github.com/anchore/syft/syft/file/cataloger/filemetadata"
 	"github.com/anchore/syft/syft/sbom"
 	"github.com/anchore/syft/syft/source"
+	"github.com/lineaje-labs/syft/internal/file"
 )
 
 type Task func(*sbom.Artifacts, source.Source) ([]artifact.Relationship, error)

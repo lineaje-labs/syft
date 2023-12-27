@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-test/deep"
 
-	"github.com/anchore/syft/syft/format/internal/testutil"
+	"github.com/lineaje-labs/syft/syft/format/internal/testutil"
 )
 
 var updateSnapshot = flag.Bool("update-table", false, "update the *.golden files for table format")

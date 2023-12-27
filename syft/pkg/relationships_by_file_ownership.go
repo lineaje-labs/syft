@@ -6,8 +6,8 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/scylladb/go-set/strset"
 
-	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
+	"github.com/lineaje-labs/syft/internal/log"
 )
 
 // AltRpmDBGlob allows db matches against new locations introduced in fedora:{36,37}

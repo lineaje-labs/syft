@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/anchore/syft/syft/file"
-	"github.com/anchore/syft/syft/internal/fileresolver"
 	"github.com/anchore/syft/syft/pkg"
+	"github.com/lineaje-labs/syft/syft/internal/fileresolver"
 )
 
 // make will run the default make target for the given test fixture path
@@ -859,7 +859,7 @@ func Test_extractVersionFromLDFlags(t *testing.T) {
 			wantMajorVersion: "4",
 			wantFullVersion:  "v4.5.7",
 		},
-		//////////////////////////////////////////////////////////////////
+		// ////////////////////////////////////////////////////////////////
 		// negative cases
 		{
 			name:    "hugo ldflags",
@@ -873,7 +873,7 @@ func Test_extractVersionFromLDFlags(t *testing.T) {
 			name:    "opa ldflags",
 			ldflags: `build	-ldflags=" -X github.com/open-policy-agent/opa/version.Hostname=9549178459bc"`,
 		},
-		///////////////////////////////////////////////////////////////////
+		// /////////////////////////////////////////////////////////////////
 		// trickier cases
 		{
 			name:             "macvlan plugin for cri-o ldflags",
@@ -887,22 +887,22 @@ func Test_extractVersionFromLDFlags(t *testing.T) {
 			wantMajorVersion: "0",
 			wantFullVersion:  "v0.23.4",
 		},
-		///////////////////////////////////////////////////////////////////
+		// /////////////////////////////////////////////////////////////////
 		// don't know how to handle these... yet
-		//{
+		// {
 		//	// package name: pkgName: "github.com/krakendio/krakend-ce/v2",
 		//	name:             "krakenD ldflags",
 		//	ldflags:          `	build	-ldflags="-X github.com/luraproject/lura/v2/core.KrakendVersion=2.3.2 -X github.com/luraproject/lura/v2/core.GoVersion=1.20.4 -X github.com/luraproject/lura/v2/core.GlibcVersion=GLIBC-2.31_(debian-11) "`,
 		//	wantMajorVersion: "2.3.2",
 		//	wantFullVersion:  "v2.3.2",
-		//},
-		//{
+		// },
+		// {
 		//	// package name: pkgName: "github.com/krakendio/krakend-ce/v2",
 		//	name:             "krakenD ldflags -- answer embedded in the middle",
 		//	ldflags:          `	build	-ldflags=" -X github.com/luraproject/lura/v2/core.GoVersion=1.20.4 -X github.com/luraproject/lura/v2/core.KrakendVersion=2.3.2 -X github.com/luraproject/lura/v2/core.GlibcVersion=GLIBC-2.31_(debian-11) "`,
 		//	wantMajorVersion: "2.3.2",
 		//	wantFullVersion:  "v2.3.2",
-		//},
+		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
