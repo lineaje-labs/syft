@@ -33,11 +33,6 @@ builds:
     goarch: [amd64, arm64]
     mod_timestamp: *build-timestamp
     ldflags: *build-ldflags
-    hooks:
-      post:
-        - cmd: .tool/quill sign-and-notarize "{{ .Path }}" --dry-run={{ .IsSnapshot }} --ad-hoc={{ .IsSnapshot }} -vv
-          env:
-            - QUILL_LOG_FILE=/tmp/quill-{{ .Target }}.log
 
   - id: windows-build
     dir: ./cmd/syft
@@ -156,17 +151,6 @@ dockers_v2:
     build_args: *docker-build-args
     flags: *docker-flags
     sbom: *docker-sbom
-
-sboms:
-  - artifacts: archive
-    cmd: ../.tool/syft
-    documents:
-      - "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}.sbom"
-    args:
-      - "scan"
-      - "$artifact"
-      - "--output"
-      - "json=$document"
 
 # the signature, certificate, and transparency log proof all land in a single sigstore bundle.
 signs:
