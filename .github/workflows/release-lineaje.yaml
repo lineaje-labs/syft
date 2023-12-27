@@ -1,0 +1,62 @@
+name: "Release Lineaje"
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: provide the tag to build and release (prefixed with v)
+        required: true
+
+jobs:
+  quality-gate:
+    environment: release
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Check if tag already exists
+        # note: this will fail if the tag does not exist
+        run: |
+            [[ "${{ github.event.inputs.version }}" == v* ]] || (echo "version '${{ github.event.inputs.version }}' does not have a 'v' prefix" && exit 1)
+            if git show-ref --tags --verify --quiet "refs/tags/${{ github.event.inputs.version }}"; then
+              echo "Tag ${{ github.event.inputs.version }} exists"
+            else
+              echo "Tag ${{ github.event.inputs.version }} does not exist"
+            fi
+
+      - name: Checkout tag
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          ref: "${{ github.event.inputs.version }}"
+
+  release:
+    needs: [quality-gate]
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Bootstrap environment
+        uses: ./.github/actions/bootstrap
+
+      - name: Build & publish release artifacts
+        run: make ci-release
+        env:
+          # for creating the release (requires write access to packages and content)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: anchore/sbom-action@fd74a6fb98a204a1ad35bbfae0122c1a302ff88b #v0.15.0
+        continue-on-error: true
+        with:
+          artifact-name: sbom.spdx.json
+
