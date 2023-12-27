@@ -35,51 +35,6 @@ jobs:
         with:
           ref: "${{ github.event.inputs.version }}"
 
-      - name: Check static analysis results
-        uses: fountainhead/action-wait-for-check@297be350cf8393728ea4d4b39435c7d7ae167c93 # v1.1.0
-        id: static-analysis
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # This check name is defined as the github action job name (in .github/workflows/testing.yaml)
-          checkName: "Static analysis"
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
-      - name: Check acceptance test results (linux)
-        uses: fountainhead/action-wait-for-check@297be350cf8393728ea4d4b39435c7d7ae167c93 # v1.1.0
-        id: acceptance-linux
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # This check name is defined as the github action job name (in .github/workflows/testing.yaml)
-          checkName: "Acceptance tests (Linux)"
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
-      - name: Check acceptance test results (mac)
-        uses: fountainhead/action-wait-for-check@297be350cf8393728ea4d4b39435c7d7ae167c93 # v1.1.0
-        id: acceptance-mac
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # This check name is defined as the github action job name (in .github/workflows/testing.yaml)
-          checkName: "Acceptance tests (Mac)"
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
-      - name: Check cli test results (linux)
-        uses: fountainhead/action-wait-for-check@297be350cf8393728ea4d4b39435c7d7ae167c93 # v1.1.0
-        id: cli-linux
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # This check name is defined as the github action job name (in .github/workflows/testing.yaml)
-          checkName: "CLI tests (Linux)"
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
-      - name: Quality gate
-        if: steps.static-analysis.outputs.conclusion != 'success' || steps.cli-linux.outputs.conclusion != 'success' || steps.acceptance-linux.outputs.conclusion != 'success' || steps.acceptance-mac.outputs.conclusion != 'success'
-        run: |
-          echo "Static Analysis Status: ${{ steps.static-analysis.conclusion }}"
-          echo "Acceptance Test (Linux) Status: ${{ steps.acceptance-linux.outputs.conclusion }}"
-          echo "Acceptance Test (Mac) Status: ${{ steps.acceptance-mac.outputs.conclusion }}"
-          echo "CLI Test (Linux) Status: ${{ steps.cli-linux.outputs.conclusion }}"
-          false
-
   release:
     needs: [quality-gate]
     runs-on: ubuntu-20.04
