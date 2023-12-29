@@ -3,8 +3,8 @@ package fileresolver
 import (
 	"io"
 
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ file.Resolver = (*Deferred)(nil)

@@ -6,7 +6,7 @@ import (
 
 	"github.com/dave/jennifer/jen"
 
-	"github.com/lineaje-labs/syft/syft/internal/sourcemetadata"
+	"github.com/anchore/syft/syft/internal/sourcemetadata"
 )
 
 // This program is invoked from syft/internal and generates sourcemetadata/generated.go

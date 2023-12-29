@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/anchore/go-logger"
-	"github.com/lineaje-labs/syft/internal/log"
+	"github.com/anchore/syft/internal/log"
 )
 
 func Test_logWriter(t *testing.T) {

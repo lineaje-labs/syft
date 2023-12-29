@@ -5,11 +5,11 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 // integrity check
@@ -22,9 +22,7 @@ var _ generic.Parser = parseSetup
 //	" mypy2 == v0.770", ' mypy3== v0.770',  --> match(name=mypy2 version=v0.770), match(name=mypy3, version=v0.770)
 var pinnedDependency = regexp.MustCompile(`['"]\W?(\w+\W?==\W?[\w.]*)`)
 
-func parseSetup(
-	_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser,
-) ([]pkg.Package, []artifact.Relationship, error) {
+func parseSetup(_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
 	var packages []pkg.Package
 
 	scanner := bufio.NewScanner(reader)

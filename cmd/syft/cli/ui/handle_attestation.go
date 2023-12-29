@@ -16,8 +16,8 @@ import (
 	"github.com/zyedidia/generic/queue"
 
 	"github.com/anchore/bubbly/bubbles/taskprogress"
+	"github.com/anchore/syft/internal/log"
 	syftEventParsers "github.com/anchore/syft/syft/event/parsers"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var (

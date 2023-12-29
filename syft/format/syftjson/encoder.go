@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/anchore/syft/internal"
 	"github.com/anchore/syft/syft/sbom"
-	"github.com/lineaje-labs/syft/internal"
 )
 
 var _ sbom.FormatEncoder = (*encoder)(nil)

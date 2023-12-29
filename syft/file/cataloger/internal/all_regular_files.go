@@ -2,8 +2,8 @@ package internal
 
 import (
 	stereoscopeFile "github.com/anchore/stereoscope/pkg/file"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 func AllRegularFiles(resolver file.Resolver) (locations []file.Location) {

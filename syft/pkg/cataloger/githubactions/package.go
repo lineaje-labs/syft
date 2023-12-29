@@ -4,9 +4,9 @@ import (
 	"strings"
 
 	"github.com/anchore/packageurl-go"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 func newPackageFromUsageStatement(use string, location file.Location) *pkg.Package {

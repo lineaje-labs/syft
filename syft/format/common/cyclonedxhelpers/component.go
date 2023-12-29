@@ -8,8 +8,8 @@ import (
 	"github.com/anchore/packageurl-go"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/format/common"
+	"github.com/anchore/syft/syft/internal/packagemetadata"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/lineaje-labs/syft/syft/internal/packagemetadata"
 )
 
 func encodeComponent(p pkg.Package) cyclonedx.Component {

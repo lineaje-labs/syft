@@ -1,4 +1,4 @@
-module github.com/lineaje-labs/syft
+module github.com/anchore/syft
 
 go 1.21.0
 
@@ -75,8 +75,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.27.0
 )
-
-require github.com/anchore/syft v0.0.0-00010101000000-000000000000
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
@@ -238,5 +236,3 @@ retract (
 	v0.53.2
 	v0.53.1 // Published accidentally with incorrect license in depdencies
 )
-
-replace github.com/anchore/syft => github.com/lineaje-labs/syft v0.98.0-1-lineaje

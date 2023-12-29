@@ -8,7 +8,7 @@ import (
 
 	"github.com/scylladb/go-set/strset"
 
-	"github.com/lineaje-labs/syft/internal/log"
+	"github.com/anchore/syft/internal/log"
 )
 
 // ZipFileManifest is a collection of paths and their file metadata.

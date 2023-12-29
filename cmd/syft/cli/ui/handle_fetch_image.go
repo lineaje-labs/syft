@@ -6,7 +6,7 @@ import (
 
 	"github.com/anchore/bubbly/bubbles/taskprogress"
 	stereoEventParsers "github.com/anchore/stereoscope/pkg/event/parsers"
-	"github.com/lineaje-labs/syft/internal/log"
+	"github.com/anchore/syft/internal/log"
 )
 
 func (m *Handler) handleFetchImage(e partybus.Event) []tea.Model {

@@ -9,7 +9,7 @@ import (
 
 	"github.com/scylladb/go-set/strset"
 
-	"github.com/lineaje-labs/syft/internal"
+	"github.com/anchore/syft/internal"
 )
 
 // For more information see: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/#license-syntax

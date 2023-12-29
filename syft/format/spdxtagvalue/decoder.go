@@ -8,9 +8,9 @@ import (
 
 	"github.com/spdx/tools-golang/tagvalue"
 
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/format/common/spdxhelpers"
 	"github.com/anchore/syft/syft/sbom"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ sbom.FormatDecoder = (*decoder)(nil)

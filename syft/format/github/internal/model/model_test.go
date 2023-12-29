@@ -9,11 +9,11 @@ import (
 
 	"github.com/anchore/packageurl-go"
 	"github.com/anchore/syft/syft/file"
+	"github.com/anchore/syft/syft/internal/sourcemetadata"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/sbom"
 	"github.com/anchore/syft/syft/source"
-	"github.com/lineaje-labs/syft/syft/internal/sourcemetadata"
 )
 
 func sbomFixture() sbom.SBOM {
@@ -103,7 +103,7 @@ func Test_toGithubModel(t *testing.T) {
 				Metadata: Metadata{
 					"syft:distro": "pkg:generic/ubuntu@18.04?like=debian",
 				},
-				// Scanned: actual.Scanned,
+				//Scanned: actual.Scanned,
 				Manifests: Manifests{
 					"ubuntu:18.04:/usr/lib": Manifest{
 						Name: "ubuntu:18.04:/usr/lib",

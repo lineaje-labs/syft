@@ -15,8 +15,8 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/afero"
 
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ file.Resolver = (*UnindexedDirectory)(nil)
@@ -150,9 +150,7 @@ func (u UnindexedDirectory) FilesByPath(paths ...string) (out []file.Location, _
 	return u.filesByPath(true, false, paths...)
 }
 
-func (u UnindexedDirectory) filesByPath(
-	resolveLinks bool, includeDirs bool, paths ...string,
-) (out []file.Location, _ error) {
+func (u UnindexedDirectory) filesByPath(resolveLinks bool, includeDirs bool, paths ...string) (out []file.Location, _ error) {
 	// sort here for stable output
 	sort.Strings(paths)
 nextPath:
@@ -186,9 +184,7 @@ func (u UnindexedDirectory) FilesByGlob(patterns ...string) (out []file.Location
 	return u.filesByGlob(true, false, patterns...)
 }
 
-func (u UnindexedDirectory) filesByGlob(
-	resolveLinks bool, includeDirs bool, patterns ...string,
-) (out []file.Location, _ error) {
+func (u UnindexedDirectory) filesByGlob(resolveLinks bool, includeDirs bool, patterns ...string) (out []file.Location, _ error) {
 	f := unindexedDirectoryResolverFS{
 		u: u,
 	}

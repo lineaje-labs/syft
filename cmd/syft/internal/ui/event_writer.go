@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/wagoodman/go-partybus"
 
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/event"
 	"github.com/anchore/syft/syft/event/parsers"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 func writeEvents(out, err io.Writer, quiet bool, events ...partybus.Event) error {

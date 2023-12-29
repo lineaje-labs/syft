@@ -20,12 +20,12 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/scylladb/go-set/strset"
 
+	"github.com/anchore/syft/internal/licenses"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/event/monitor"
 	"github.com/anchore/syft/syft/file"
+	"github.com/anchore/syft/syft/internal/fileresolver"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/lineaje-labs/syft/internal/licenses"
-	"github.com/lineaje-labs/syft/internal/log"
-	"github.com/lineaje-labs/syft/syft/internal/fileresolver"
 )
 
 type goLicenses struct {
@@ -87,9 +87,7 @@ func modCacheResolver(modCacheDir string) file.WritableResolver {
 	return r
 }
 
-func (c *goLicenses) getLicenses(
-	resolver file.Resolver, moduleName, moduleVersion string,
-) (licenses []pkg.License, err error) {
+func (c *goLicenses) getLicenses(resolver file.Resolver, moduleName, moduleVersion string) (licenses []pkg.License, err error) {
 	licenses, err = c.findLicenses(resolver,
 		fmt.Sprintf(`**/go/pkg/mod/%s@%s/*`, processCaps(moduleName), moduleVersion),
 	)
@@ -208,9 +206,7 @@ func processCaps(s string) string {
 	})
 }
 
-func getModule(
-	progress *monitor.CatalogerTask, proxies []string, moduleName, moduleVersion string,
-) (fsys fs.FS, err error) {
+func getModule(progress *monitor.CatalogerTask, proxies []string, moduleName, moduleVersion string) (fsys fs.FS, err error) {
 	for _, proxy := range proxies {
 		u, _ := url.Parse(proxy)
 		if proxy == "direct" {
@@ -232,9 +228,7 @@ func getModule(
 	return
 }
 
-func getModuleProxy(
-	progress *monitor.CatalogerTask, proxy string, moduleName string, moduleVersion string,
-) (out fs.FS, _ error) {
+func getModuleProxy(progress *monitor.CatalogerTask, proxy string, moduleName string, moduleVersion string) (out fs.FS, _ error) {
 	u := fmt.Sprintf("%s/%s/@v/%s.zip", proxy, moduleName, moduleVersion)
 	progress.SetValue(u)
 

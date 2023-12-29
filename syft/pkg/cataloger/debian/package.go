@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"github.com/anchore/packageurl-go"
+	"github.com/anchore/syft/internal"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/lineaje-labs/syft/internal"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 const (
@@ -22,9 +22,7 @@ const (
 	docsPath     = "/usr/share/doc"
 )
 
-func newDpkgPackage(
-	d pkg.DpkgDBEntry, dbLocation file.Location, resolver file.Resolver, release *linux.Release,
-) pkg.Package {
+func newDpkgPackage(d pkg.DpkgDBEntry, dbLocation file.Location, resolver file.Resolver, release *linux.Release) pkg.Package {
 	// TODO: separate pr to license refactor, but explore extracting dpkg-specific license parsing into a separate function
 	licenses := make([]pkg.License, 0)
 	p := pkg.Package{
@@ -141,9 +139,7 @@ loopNewFiles:
 	p.Locations.Add(infoLocations...)
 }
 
-func getAdditionalFileListing(
-	resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry,
-) ([]pkg.DpkgFileRecord, []file.Location) {
+func getAdditionalFileListing(resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry) ([]pkg.DpkgFileRecord, []file.Location) {
 	// ensure the default value for a collection is never nil since this may be shown as JSON
 	var files = make([]pkg.DpkgFileRecord, 0)
 	var locations []file.Location
@@ -174,9 +170,7 @@ func getAdditionalFileListing(
 }
 
 //nolint:dupl
-func fetchMd5Contents(
-	resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry,
-) (io.ReadCloser, *file.Location) {
+func fetchMd5Contents(resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry) (io.ReadCloser, *file.Location) {
 	var md5Reader io.ReadCloser
 	var err error
 
@@ -220,9 +214,7 @@ func fetchMd5Contents(
 }
 
 //nolint:dupl
-func fetchConffileContents(
-	resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry,
-) (io.ReadCloser, *file.Location) {
+func fetchConffileContents(resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry) (io.ReadCloser, *file.Location) {
 	var reader io.ReadCloser
 	var err error
 
@@ -257,9 +249,7 @@ func fetchConffileContents(
 	return reader, &l
 }
 
-func fetchCopyrightContents(
-	resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry,
-) (io.ReadCloser, *file.Location) {
+func fetchCopyrightContents(resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry) (io.ReadCloser, *file.Location) {
 	if resolver == nil {
 		return nil, nil
 	}

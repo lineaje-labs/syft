@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/anchore/clio"
-	"github.com/lineaje-labs/syft/cmd/syft/internal/ui"
+	"github.com/anchore/syft/cmd/syft/internal/ui"
 )
 
 func Root(app clio.Application, packagesCmd *cobra.Command) *cobra.Command {

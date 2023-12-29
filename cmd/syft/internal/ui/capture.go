@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/lineaje-labs/syft/internal/log"
+	"github.com/anchore/syft/internal/log"
 )
 
 const defaultStdoutLogBufferSize = 1024
