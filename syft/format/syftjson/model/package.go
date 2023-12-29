@@ -24,16 +24,17 @@ type Package struct {
 
 // PackageBasicData contains non-ambiguous values (type-wise) from pkg.Package.
 type PackageBasicData struct {
-	ID        string          `json:"id"`
-	Name      string          `json:"name"`
-	Version   string          `json:"version"`
-	Type      pkg.Type        `json:"type"`
-	FoundBy   string          `json:"foundBy"`
-	Locations []file.Location `json:"locations"`
-	Licenses  licenses        `json:"-"` // Do not save Licenses for now
-	Language  pkg.Language    `json:"language"`
-	CPEs      []string        `json:"cpes"`
-	PURL      string          `json:"purl"`
+	ID          string          `json:"id"`
+	Name        string          `json:"name"`
+	Version     string          `json:"version"`
+	Type        pkg.Type        `json:"type"`
+	FoundBy     string          `json:"foundBy"`
+	Locations   []file.Location `json:"locations"`
+	OldLicenses []string        `json:"licenses"` // Save empty licenses string array
+	Licenses    licenses        `json:"-"`        // Do not save Licenses using the new format for now
+	Language    pkg.Language    `json:"language"`
+	CPEs        []string        `json:"cpes"`
+	PURL        string          `json:"purl"`
 }
 
 type licenses []License
