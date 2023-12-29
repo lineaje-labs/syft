@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/lineaje-labs/syft/internal"
+	"github.com/anchore/syft/internal"
 )
 
 var (

@@ -4,10 +4,10 @@ import (
 	"github.com/wagoodman/go-partybus"
 	"github.com/wagoodman/go-progress"
 
+	"github.com/anchore/syft/internal/bus"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/event"
 	"github.com/anchore/syft/syft/file"
-	"github.com/lineaje-labs/syft/internal/bus"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 type Cataloger struct {
@@ -17,9 +17,7 @@ func NewCataloger() *Cataloger {
 	return &Cataloger{}
 }
 
-func (i *Cataloger) Catalog(
-	resolver file.Resolver, coordinates ...file.Coordinates,
-) (map[file.Coordinates]file.Metadata, error) {
+func (i *Cataloger) Catalog(resolver file.Resolver, coordinates ...file.Coordinates) (map[file.Coordinates]file.Metadata, error) {
 	results := make(map[file.Coordinates]file.Metadata)
 	var locations <-chan file.Location
 

@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/anchore/syft/syft/file"
+	"github.com/anchore/syft/syft/internal/fileresolver"
 	"github.com/anchore/syft/syft/license"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/lineaje-labs/syft/syft/internal/fileresolver"
 )
 
 func Test_LocalLicenseSearch(t *testing.T) {

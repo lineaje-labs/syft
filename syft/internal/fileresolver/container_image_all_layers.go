@@ -7,8 +7,8 @@ import (
 	stereoscopeFile "github.com/anchore/stereoscope/pkg/file"
 	"github.com/anchore/stereoscope/pkg/filetree"
 	"github.com/anchore/stereoscope/pkg/image"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ file.Resolver = (*ContainerImageAllLayers)(nil)
@@ -47,9 +47,7 @@ func (r *ContainerImageAllLayers) HasPath(path string) bool {
 	return false
 }
 
-func (r *ContainerImageAllLayers) fileByRef(
-	ref stereoscopeFile.Reference, uniqueFileIDs stereoscopeFile.ReferenceSet, layerIdx int,
-) ([]stereoscopeFile.Reference, error) {
+func (r *ContainerImageAllLayers) fileByRef(ref stereoscopeFile.Reference, uniqueFileIDs stereoscopeFile.ReferenceSet, layerIdx int) ([]stereoscopeFile.Reference, error) {
 	uniqueFiles := make([]stereoscopeFile.Reference, 0)
 
 	// since there is potentially considerable work for each symlink/hardlink that needs to be resolved, let's check to see if this is a symlink/hardlink first

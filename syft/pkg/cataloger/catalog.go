@@ -10,14 +10,14 @@ import (
 	"github.com/wagoodman/go-partybus"
 	"github.com/wagoodman/go-progress"
 
+	"github.com/anchore/syft/internal/bus"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/event"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/common/cpe"
-	"github.com/lineaje-labs/syft/internal/bus"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 // Monitor provides progress-related data for observing the progress of a Catalog() call (published on the event bus).
@@ -112,9 +112,7 @@ func runCataloger(cataloger pkg.Cataloger, resolver file.Resolver) (catalogerRes
 // request.
 //
 //nolint:funlen
-func Catalog(
-	resolver file.Resolver, _ *linux.Release, parallelism int, catalogers ...pkg.Cataloger,
-) (*pkg.Collection, []artifact.Relationship, error) {
+func Catalog(resolver file.Resolver, _ *linux.Release, parallelism int, catalogers ...pkg.Cataloger) (*pkg.Collection, []artifact.Relationship, error) {
 	catalog := pkg.NewCollection()
 	var allRelationships []artifact.Relationship
 

@@ -22,14 +22,8 @@ func ExtractGlobsFromRPMToUniqueTempFile(rpmPath, dir string, globs ...string) (
 	}
 	defer f.Close()
 	rpm, err := rpmutils.ReadRpm(f)
-	if err != nil {
-		return results, nil
-	}
 	var files int
 	payload, err := rpm.PayloadReaderExtended()
-	if err != nil {
-		return results, nil
-	}
 	for {
 		file, err := payload.Next()
 		if err == io.EOF {

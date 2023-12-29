@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/anchore/syft/syft/format/internal/cyclonedxutil"
+	"github.com/anchore/syft/syft/format/internal/testutil"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/sbom"
-	"github.com/lineaje-labs/syft/syft/format/internal/cyclonedxutil"
-	"github.com/lineaje-labs/syft/syft/format/internal/testutil"
 )
 
 var updateSnapshot = flag.Bool("update-cyclonedx-json", false, "update the *.golden files for cyclone-dx JSON encoders")

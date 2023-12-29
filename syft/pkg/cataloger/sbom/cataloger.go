@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/format"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 const catalogerName = "sbom-cataloger"
@@ -36,9 +36,7 @@ func NewCataloger() pkg.Cataloger {
 		)
 }
 
-func parseSBOM(
-	_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser,
-) ([]pkg.Package, []artifact.Relationship, error) {
+func parseSBOM(_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
 	readSeeker, err := adaptToReadSeeker(reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to read SBOM file %q: %w", reader.Location.RealPath, err)

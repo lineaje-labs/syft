@@ -3,7 +3,7 @@ package alpine
 import (
 	"testing"
 
-	"github.com/lineaje-labs/syft/syft/pkg/cataloger/internal/pkgtest"
+	"github.com/anchore/syft/syft/pkg/cataloger/internal/pkgtest"
 )
 
 func TestCataloger_Globs(t *testing.T) {

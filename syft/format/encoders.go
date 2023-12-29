@@ -9,8 +9,8 @@ import (
 
 	"github.com/scylladb/go-set/strset"
 
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/sbom"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 type EncoderCollection struct {

@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/anchore/packageurl-go"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 func newPackageJSONPackage(u packageJSON, indexLocation file.Location) pkg.Package {
@@ -43,9 +43,7 @@ func newPackageJSONPackage(u packageJSON, indexLocation file.Location) pkg.Packa
 	return p
 }
 
-func newPackageLockV1Package(
-	resolver file.Resolver, location file.Location, name string, u lockDependency,
-) pkg.Package {
+func newPackageLockV1Package(resolver file.Resolver, location file.Location, name string, u lockDependency) pkg.Package {
 	version := u.Version
 
 	const aliasPrefixPackageLockV1 = "npm:"

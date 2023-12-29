@@ -13,11 +13,11 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/scylladb/go-set/strset"
 
+	"github.com/anchore/syft/internal/bus"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/format"
 	"github.com/anchore/syft/syft/format/table"
 	"github.com/anchore/syft/syft/sbom"
-	"github.com/lineaje-labs/syft/internal/bus"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 var _ sbom.Writer = (*sbomMultiWriter)(nil)
@@ -44,9 +44,7 @@ func makeSBOMWriter(outputs []string, defaultFile string, encoders []sbom.Format
 }
 
 // parseSBOMOutputFlags utility to parse command-line option strings and retain the existing behavior of default format and file
-func parseSBOMOutputFlags(
-	outputs []string, defaultFile string, encoders []sbom.FormatEncoder,
-) (out []sbomWriterDescription, errs error) {
+func parseSBOMOutputFlags(outputs []string, defaultFile string, encoders []sbom.FormatEncoder) (out []sbomWriterDescription, errs error) {
 	encoderCollection := format.NewEncoderCollection(encoders...)
 
 	// always should have one option -- we generally get the default of "table", but just make sure

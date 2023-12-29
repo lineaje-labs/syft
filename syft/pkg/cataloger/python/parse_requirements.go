@@ -10,12 +10,12 @@ import (
 	pep440 "github.com/aquasecurity/go-pep440-version"
 	"github.com/mitchellh/mapstructure"
 
+	"github.com/anchore/syft/internal"
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
-	"github.com/lineaje-labs/syft/internal"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 const (
@@ -92,9 +92,7 @@ func newRequirementsParser(cfg CatalogerConfig) requirementsParser {
 
 // parseRequirementsTxt takes a Python requirements.txt file, returning all Python packages that are locked to a
 // specific version.
-func (rp requirementsParser) parseRequirementsTxt(
-	_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser,
-) ([]pkg.Package, []artifact.Relationship, error) {
+func (rp requirementsParser) parseRequirementsTxt(_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
 	var packages []pkg.Package
 
 	scanner := bufio.NewScanner(reader)

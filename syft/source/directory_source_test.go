@@ -12,7 +12,7 @@ import (
 
 	"github.com/anchore/stereoscope/pkg/file"
 	"github.com/anchore/syft/syft/artifact"
-	"github.com/lineaje-labs/syft/syft/internal/fileresolver"
+	"github.com/anchore/syft/syft/internal/fileresolver"
 )
 
 func TestNewFromDirectory(t *testing.T) {
@@ -163,7 +163,7 @@ func Test_DirectorySource_Exclusions(t *testing.T) {
 				"Dockerfile",
 				"file-1.txt",
 				"file-2.txt",
-				// "target/really/nested/file-3.txt", // explicitly skipped
+				//"target/really/nested/file-3.txt", // explicitly skipped
 			},
 			exclusions: []string{"./target"},
 		},
@@ -173,7 +173,7 @@ func Test_DirectorySource_Exclusions(t *testing.T) {
 			glob:  "**",
 			expected: []string{
 				"Dockerfile",
-				// "file-1.txt",  // explicitly skipped
+				//"file-1.txt",  // explicitly skipped
 				"file-2.txt",
 				"target/really/nested/file-3.txt",
 			},
@@ -185,8 +185,8 @@ func Test_DirectorySource_Exclusions(t *testing.T) {
 			glob:  "**",
 			expected: []string{
 				"Dockerfile",
-				// "file-1.txt",  // explicitly skipped
-				// "file-2.txt", // explicitly skipped
+				//"file-1.txt",  // explicitly skipped
+				//"file-2.txt", // explicitly skipped
 				"target/really/nested/file-3.txt",
 			},
 			exclusions: []string{"./*.txt"},
@@ -199,7 +199,7 @@ func Test_DirectorySource_Exclusions(t *testing.T) {
 				"Dockerfile",
 				"file-1.txt",
 				"file-2.txt",
-				// "target/really/nested/file-3.txt", // explicitly skipped
+				//"target/really/nested/file-3.txt", // explicitly skipped
 			},
 			exclusions: []string{"**/really/**"},
 		},
@@ -209,9 +209,9 @@ func Test_DirectorySource_Exclusions(t *testing.T) {
 			glob:  "**",
 			expected: []string{
 				"Dockerfile",
-				// "file-1.txt",  // explicitly skipped
-				// "file-2.txt", // explicitly skipped
-				// "target/really/nested/file-3.txt", // explicitly skipped
+				//"file-1.txt",  // explicitly skipped
+				//"file-2.txt", // explicitly skipped
+				//"target/really/nested/file-3.txt", // explicitly skipped
 			},
 			exclusions: []string{"**/*.txt"},
 		},

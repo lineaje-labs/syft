@@ -13,6 +13,8 @@ import (
 	"github.com/spdx/tools-golang/spdx/v2/common"
 
 	"github.com/anchore/packageurl-go"
+	"github.com/anchore/syft/internal/log"
+	"github.com/anchore/syft/internal/spdxlicense"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/cpe"
 	"github.com/anchore/syft/syft/file"
@@ -22,8 +24,6 @@ import (
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/sbom"
 	"github.com/anchore/syft/syft/source"
-	"github.com/lineaje-labs/syft/internal/log"
-	"github.com/lineaje-labs/syft/internal/spdxlicense"
 )
 
 func ToSyftModel(doc *spdx.Document) (*sbom.SBOM, error) {

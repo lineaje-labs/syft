@@ -4,9 +4,9 @@ Package rust provides a concrete Cataloger implementation relating to packages w
 package rust
 
 import (
+	"github.com/anchore/syft/internal"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
-	"github.com/lineaje-labs/syft/internal"
 )
 
 // NewCargoLockCataloger returns a new Rust Cargo lock file cataloger object.

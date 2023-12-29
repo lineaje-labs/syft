@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/pkg"
-	"github.com/lineaje-labs/syft/internal/log"
 )
 
 // nameAndVersionPattern finds the package name and version (as named capture
