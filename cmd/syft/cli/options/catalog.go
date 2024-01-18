@@ -150,9 +150,7 @@ func (cfg Catalog) ToCatalogerConfig() cataloger.Config {
 					IncludeUnindexedArchives: cfg.Package.SearchUnindexedArchives,
 				},
 				cfg.Java.MaxParentRecursiveDepth),
-		Python: pythonCataloger.CatalogerConfig{
-			GuessUnpinnedRequirements: cfg.Python.GuessUnpinnedRequirements,
-		},
+		Python: pythonCataloger.DefaultCatalogerConfig(),
 		ExcludeBinaryOverlapByOwnership: cfg.ExcludeBinaryOverlapByOwnership,
 		CleanupDisabled:                 cfg.CleanupDisabled,
 	}
