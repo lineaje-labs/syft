@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/anchore/syft/internal/cache"
@@ -16,12 +17,14 @@ import (
 type pythonLicenseResolver struct {
 	catalogerConfig CatalogerConfig
 	licenseCache    cache.Resolver[[]pkg.License]
+	httpClient      *http.Client
 }
 
 func newPythonLicenseResolver(config CatalogerConfig) pythonLicenseResolver {
 	return pythonLicenseResolver{
 		licenseCache:    cache.GetResolverCachingErrors[[]pkg.License]("python", "v1"),
 		catalogerConfig: config,
+		httpClient:      &http.Client{Timeout: time.Second * 10},
 	}
 }
 
@@ -42,7 +45,7 @@ func (lr *pythonLicenseResolver) getLicenses(ctx context.Context, packageName st
 
 func (lr *pythonLicenseResolver) getLicensesFromRemote(ctx context.Context, packageName string, packageVersion string) ([]pkg.License, error) {
 	return lr.licenseCache.Resolve(fmt.Sprintf("%s/%s", packageName, packageVersion), func() ([]pkg.License, error) {
-		license, err := getLicenseFromPypiRegistry(lr.catalogerConfig.PypiBaseURL, packageName, packageVersion)
+		license, err := lr.getLicenseFromPypiRegistry(ctx, packageName, packageVersion)
 		if err == nil && license != "" {
 			licenses := pkg.NewLicensesFromValuesWithContext(ctx, license)
 			return licenses, nil
@@ -67,24 +70,23 @@ func formatPypiRegistryURL(baseURL, packageName, version string) (requestURL str
 	return requestURL, nil
 }
 
-func getLicenseFromPypiRegistry(baseURL, packageName, version string) (string, error) {
-	// "https://pypi.org/pypi/%s/%s/json", packageName, version
-	requestURL, err := formatPypiRegistryURL(baseURL, packageName, version)
+func (lr *pythonLicenseResolver) getLicenseFromPypiRegistry(ctx context.Context, packageName, version string) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+
+	requestURL, err := formatPypiRegistryURL(lr.catalogerConfig.PypiBaseURL, packageName, version)
 	if err != nil {
 		return "", fmt.Errorf("unable to format pypi request for pkg:version %s%s; %w", packageName, version, err)
 	}
 	log.WithFields("url", requestURL).Info("downloading python package from pypi")
 
-	pypiRequest, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	pypiRequest, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
 		return "", fmt.Errorf("unable to format remote request: %w", err)
 	}
 
-	httpClient := &http.Client{
-		Timeout: time.Second * 10,
-	}
-
-	resp, err := httpClient.Do(pypiRequest)
+	resp, err := lr.httpClient.Do(pypiRequest)
 	if err != nil {
 		return "", fmt.Errorf("unable to get package from pypi registry: %w", err)
 	}
@@ -113,7 +115,8 @@ func getLicenseFromPypiRegistry(baseURL, packageName, version string) (string, e
 	var license string
 	if pypiResponse.Info.LicenseExpression != "" {
 		license = pypiResponse.Info.LicenseExpression
-	} else {
+	} else if !strings.Contains(pypiResponse.Info.License, "\n") {
+		// only use the license field when it looks like an identifier, not a full license text
 		license = pypiResponse.Info.License
 	}
 	log.Tracef("Retrieved License: %s", license)

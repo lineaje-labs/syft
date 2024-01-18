@@ -1,12 +1,14 @@
 package python
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -114,7 +116,10 @@ func TestGetLicenseFromPypiRegistry(t *testing.T) {
 			for _, handler := range tc.requestHandlers {
 				mux.HandleFunc(handler.path, handler.handler)
 			}
-			got, err := getLicenseFromPypiRegistry(url, tc.name, tc.version)
+			lr := newPythonLicenseResolver(CatalogerConfig{PypiBaseURL: url})
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			got, err := lr.getLicenseFromPypiRegistry(ctx, tc.name, tc.version)
 			require.Equal(t, tc.expected, got)
 			if tc.expectedError != nil {
 				require.ErrorContains(t, err, tc.expectedError.Error())

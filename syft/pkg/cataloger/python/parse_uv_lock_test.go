@@ -125,7 +125,7 @@ func TestParseUvLock(t *testing.T) {
 		},
 	}
 
-	uvLockParser := newUvLockParser(DefaultCatalogerConfig())
+	uvLockParser := newUvLockParser(CatalogerConfig{})
 	pkgtest.TestFileParser(t, fixture, uvLockParser.parseUvLock, expectedPkgs, expectedRelationships)
 }
 
@@ -190,7 +190,7 @@ func TestParseUvLockForkedVersions(t *testing.T) {
 		dependencyOf(numpy253, pandas306),
 	}
 
-	uvLockParser := newUvLockParser(DefaultCatalogerConfig())
+	uvLockParser := newUvLockParser(CatalogerConfig{})
 	pkgtest.TestFileParser(t, fixture, uvLockParser.parseUvLock, []pkg.Package{
 		forkdemo,
 		numpy1264,

@@ -160,7 +160,7 @@ func TestParseSetup(t *testing.T) {
 			}
 			var expectedRelationships []artifact.Relationship
 
-			setupFileParser := newSetupFileParser(DefaultCatalogerConfig())
+			setupFileParser := newSetupFileParser(CatalogerConfig{})
 			pkgtest.TestFileParser(t, tt.fixture, setupFileParser.parseSetupFile, tt.expected, expectedRelationships)
 		})
 	}

@@ -1,0 +1,7 @@
+{
+  "last_serial": 1,
+  "releases": {
+    "3.4.1": [{"upload_time_iso_8601": "2023-01-01T00:00:00Z", "yanked": false}],
+    "3.0.0": [{"upload_time_iso_8601": "2020-01-01T00:00:00Z", "yanked": false}]
+  }
+}

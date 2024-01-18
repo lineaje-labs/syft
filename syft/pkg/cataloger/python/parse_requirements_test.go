@@ -2,6 +2,11 @@ package python
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -154,6 +159,24 @@ func TestParseRequirementsTxt(t *testing.T) {
 		},
 	}
 
+	// set up a mock PyPI server so the guess-unpinned test is deterministic
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// path is /pypi/<name>/json
+		path := r.URL.Path
+		path = strings.TrimPrefix(path, "/pypi/")
+		path = strings.TrimSuffix(path, "/json")
+		name := strings.ToLower(path)
+		fpath := fmt.Sprintf("testdata/requires/pypi-%s.json", name)
+		data, err := os.ReadFile(fpath)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(data)
+	}))
+	defer mockServer.Close()
+
 	var testCases = []struct {
 		name                  string
 		fixture               string
@@ -174,6 +197,7 @@ func TestParseRequirementsTxt(t *testing.T) {
 			fixture: fixture,
 			cfg: CatalogerConfig{
 				GuessUnpinnedRequirements: true,
+				PypiBaseURL:               mockServer.URL + "/pypi",
 			},
 			expectedPkgs: append([]pkg.Package{
 				{
@@ -501,8 +525,25 @@ func Test_newRequirement(t *testing.T) {
 
 // checkout https://www.darius.page/pipdev/ for help here! (github.com/nok/pipdev)
 func Test_parseVersion(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimPrefix(r.URL.Path, "/pypi/")
+		path = strings.TrimSuffix(path, "/json")
+		name := strings.ToLower(path)
+		fpath := fmt.Sprintf("testdata/requires/pypi-%s.json", name)
+		data, err := os.ReadFile(fpath)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(data)
+	}))
+	defer mockServer.Close()
+	mockPypiURL := mockServer.URL + "/pypi"
+
 	tests := []struct {
 		name    string
+		pkgName string // non-empty to exercise the guessVersion PyPI path
 		version string
 		guess   bool
 		want    string
@@ -582,46 +623,94 @@ func Test_parseVersion(t *testing.T) {
 			version: "!= 1.1.0",
 			want:    "",
 		},
+		// guess=true without a name: guessVersion short-circuits to ""
 		{
-			name:    "resolve lowest, simple constraint",
+			name:    "no name: simple constraint",
 			version: " >= 1.0.0 ",
 			guess:   true,
-			want:    "1.0.0",
+			want:    "",
 		},
 		{
-			name:    "resolve lowest, compound constraint",
+			name:    "no name: compound constraint",
 			version: "  < 2.0.0,  >= 1.0.0, != 1.1.0 ",
 			guess:   true,
-			want:    "1.0.0",
+			want:    "",
+		},
+		// guess=true with a name: hits the mock PyPI server
+		// pypi-numpy.json has versions 3.4.1 (newer) and 3.0.0
+		{
+			name:    "guess: no constraint returns latest",
+			pkgName: "numpy",
+			version: "",
+			guess:   true,
+			want:    "3.4.1",
 		},
 		{
-			name:    "resolve lowest, handle asterisk",
+			name:    "guess: simple lower-bound matches newest",
+			pkgName: "numpy",
+			version: ">= 3.0.0",
+			guess:   true,
+			want:    "3.4.1",
+		},
+		{
+			name:    "guess: upper-bound excludes newest",
+			pkgName: "numpy",
+			version: "< 3.4.0",
+			guess:   true,
+			want:    "3.0.0",
+		},
+		// pypi-requests.json has 2.8.0 and 2.7.0
+		{
+			name:    "guess: wildcard constraint",
+			pkgName: "requests",
 			version: "==2.8.*",
 			guess:   true,
 			want:    "2.8.0",
 		},
 		{
-			name:    "resolve lowest, handle exceptions",
-			version: " !=4.0.2,!=4.1.0,!=4.2.0,>=4.0.1,!=4.3.0,!=5.0.0,!=5.1.0,<6.0.0",
+			name:    "guess: range selects newest in-range version",
+			pkgName: "requests",
+			version: ">=2.7.0,<2.8.0",
 			guess:   true,
-			want:    "4.0.1",
+			want:    "2.7.0",
+		},
+		// pypi-sqlalchemy.json has 2.0.0, 1.4.54, 1.0.0
+		{
+			name:    "guess: exclusion skips a version",
+			pkgName: "sqlalchemy",
+			version: "!=2.0.0,>=1.0.0",
+			guess:   true,
+			want:    "1.4.54",
 		},
 		{
-			name:    "resolve lowest, compatible version constraint",
-			version: "~=0.6.10", // equates to >=0.6.10, ==0.6.*
+			name:    "guess: compatible release (~=)",
+			pkgName: "sqlalchemy",
+			version: "~=1.4.0", // >=1.4.0, ==1.4.*
 			guess:   true,
-			want:    "0.6.10",
+			want:    "1.4.54",
 		},
 		{
-			name:    "resolve lowest, with character in version",
-			version: "~=1.2b,<=1.3a,!=1.1,!=1.2",
+			name:    "guess: package not in PyPI returns empty",
+			pkgName: "unknown-package",
+			version: ">=1.0.0",
 			guess:   true,
-			want:    "1.3a0", // note: 1.3a == 1.3a0
+			want:    "",
+		},
+		{
+			name:    "guess: no guess flag ignores package name",
+			pkgName: "numpy",
+			version: ">=3.0.0",
+			guess:   false,
+			want:    "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, parseVersion(tt.version, tt.guess))
+			pypiURL := ""
+			if tt.pkgName != "" {
+				pypiURL = mockPypiURL
+			}
+			assert.Equal(t, tt.want, parseVersion(tt.pkgName, tt.version, tt.guess, pypiURL))
 		})
 	}
 }

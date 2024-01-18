@@ -368,7 +368,7 @@ func TestParsePdmLock(t *testing.T) {
 		},
 	}
 
-	pdmLockParser := newPdmLockParser(DefaultCatalogerConfig())
+	pdmLockParser := newPdmLockParser(CatalogerConfig{})
 	pkgtest.TestFileParser(t, fixture, pdmLockParser.parsePdmLock, expectedPkgs, expectedRelationships)
 }
 
@@ -452,7 +452,7 @@ func TestParsePdmLockWithExtras(t *testing.T) {
 	// We should get exactly ONE coverage package in the output, with extras properly tracked.
 
 	fixture := "testdata/pdm-lock-extras/pdm.lock"
-	pdmLockParser := newPdmLockParser(DefaultCatalogerConfig())
+	pdmLockParser := newPdmLockParser(CatalogerConfig{})
 
 	fh, err := os.Open(fixture)
 	require.NoError(t, err)
@@ -585,7 +585,7 @@ func TestParsePdmLockWithSeparateFilesFixture(t *testing.T) {
 	// in the Extras field.
 
 	fixture := "testdata/pdm-lock-separate-files/pdm.lock"
-	pdmLockParser := newPdmLockParser(DefaultCatalogerConfig())
+	pdmLockParser := newPdmLockParser(CatalogerConfig{})
 
 	fh, err := os.Open(fixture)
 	require.NoError(t, err)
@@ -695,7 +695,7 @@ func TestMergePdmLockPackagesNoBasePackage(t *testing.T) {
 }
 
 func Test_corruptPdmLock(t *testing.T) {
-	psr := newPdmLockParser(DefaultCatalogerConfig())
+	psr := newPdmLockParser(CatalogerConfig{})
 	pkgtest.NewCatalogTester().
 		FromFile(t, "testdata/glob-paths/src/pdm.lock").
 		WithError().
