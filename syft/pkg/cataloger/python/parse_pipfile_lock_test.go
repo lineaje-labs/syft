@@ -79,7 +79,7 @@ func TestParsePipFileLock(t *testing.T) {
 	// TODO: relationships are not under test
 	var expectedRelationships []artifact.Relationship
 
-	pipfileLockParser := newPipfileLockParser(DefaultCatalogerConfig())
+	pipfileLockParser := newPipfileLockParser(CatalogerConfig{})
 	pkgtest.TestFileParser(t, fixture, pipfileLockParser.parsePipfileLock, expectedPkgs, expectedRelationships)
 }
 
@@ -139,7 +139,7 @@ func TestParsePipfileLockWithLicenseEnrichment(t *testing.T) {
 }
 
 func Test_corruptPipfileLock(t *testing.T) {
-	pipfileLockParser := newPipfileLockParser(DefaultCatalogerConfig())
+	pipfileLockParser := newPipfileLockParser(CatalogerConfig{})
 	pkgtest.NewCatalogTester().
 		FromFile(t, "testdata/glob-paths/src/Pipfile.lock").
 		WithError().

@@ -452,7 +452,7 @@ func Test_PackageCataloger(t *testing.T) {
 				FromDirectory(t, tt.fixture).
 				ExpectsPackageStrings(tt.expectedPackages).
 				ExpectsRelationshipStrings(tt.expectedRelationships).
-				TestCataloger(t, NewPackageCataloger(DefaultCatalogerConfig()))
+				TestCataloger(t, NewPackageCataloger(CatalogerConfig{}))
 		})
 	}
 }
@@ -512,7 +512,7 @@ func Test_IndexCataloger_Globs(t *testing.T) {
 			pkgtest.NewCatalogTester().
 				FromDirectory(t, test.fixture).
 				ExpectsResolverContentQueries(test.expected).
-				TestCataloger(t, NewPackageCataloger(DefaultCatalogerConfig()))
+				TestCataloger(t, NewPackageCataloger(CatalogerConfig{}))
 		})
 	}
 }
@@ -892,7 +892,7 @@ func Test_PackageCataloger_Relationships(t *testing.T) {
 				FromDirectory(t, test.fixture).
 				WithPackageStringer(stringPackage).
 				ExpectsRelationshipStrings(test.expectedRelationships).
-				TestCataloger(t, NewPackageCataloger(DefaultCatalogerConfig()))
+				TestCataloger(t, NewPackageCataloger(CatalogerConfig{}))
 		})
 	}
 }

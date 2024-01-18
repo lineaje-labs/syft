@@ -80,7 +80,7 @@ func TestParsePoetryLock(t *testing.T) {
 
 	var expectedRelationships []artifact.Relationship
 
-	poetryLockParser := newPoetryLockParser(DefaultCatalogerConfig())
+	poetryLockParser := newPoetryLockParser(CatalogerConfig{})
 	pkgtest.TestFileParser(t, fixture, poetryLockParser.parsePoetryLock, expectedPkgs, expectedRelationships)
 }
 
@@ -135,7 +135,7 @@ func TestParsePoetryLockWithLicenseEnrichment(t *testing.T) {
 	}
 }
 func Test_corruptPoetryLock(t *testing.T) {
-	poetryLockParser := newPoetryLockParser(DefaultCatalogerConfig())
+	poetryLockParser := newPoetryLockParser(CatalogerConfig{})
 	pkgtest.NewCatalogTester().
 		FromFile(t, "testdata/glob-paths/src/poetry.lock").
 		WithError().

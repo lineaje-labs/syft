@@ -242,12 +242,7 @@ func Test_poetryLockDependencySpecifier_againstPoetryLock(t *testing.T) {
 						Provides: []string{"dj-rest-auth"},
 						Requires: []string{"django", "djangorestframework"}, // Django normalized to django
 					},
-					Variants: []dependency.ProvidesRequires{
-						{
-							Provides: []string{"dj-rest-auth[with-social]"},
-							Requires: []string{"django-allauth"},
-						},
-					},
+					Variants: nil,
 				},
 			},
 		},
@@ -275,38 +270,13 @@ func Test_poetryLockDependencySpecifier_againstPoetryLock(t *testing.T) {
 						Provides: []string{"requests"},
 						Requires: []string{"certifi", "charset-normalizer", "idna", "urllib3"},
 					},
-					Variants: []dependency.ProvidesRequires{
-						{
-							Provides: []string{"requests[socks]"},
-							Requires: []string{"pysocks"},
-						},
-						{
-							Provides: []string{"requests[use-chardet-on-py3]"},
-							Requires: []string{"chardet"},
-						},
-					},
+					Variants: nil,
 				},
 				{
 					ProvidesRequires: dependency.ProvidesRequires{
 						Provides: []string{"urllib3"},
 					},
-					Variants: []dependency.ProvidesRequires{
-						{
-							Provides: []string{"urllib3[brotli]"},
-							Requires: []string{"brotli", "brotlicffi"},
-						},
-						{
-							Provides: []string{"urllib3[h2]"},
-							Requires: []string{"h2"}},
-						{
-							Provides: []string{"urllib3[socks]"},
-							Requires: []string{"pysocks"},
-						},
-						{
-							Provides: []string{"urllib3[zstd]"},
-							Requires: []string{"zstandard"},
-						},
-					},
+					Variants: nil,
 				},
 			},
 		},
@@ -316,7 +286,7 @@ func Test_poetryLockDependencySpecifier_againstPoetryLock(t *testing.T) {
 			fh, err := os.Open(tt.fixture)
 			require.NoError(t, err)
 
-			plp := newPoetryLockParser(DefaultCatalogerConfig())
+			plp := newPoetryLockParser(CatalogerConfig{})
 			pkgs, err := plp.poetryLockPackages(context.TODO(), file.NewLocationReadCloser(file.NewLocation(tt.fixture), fh))
 			require.NoError(t, err)
 

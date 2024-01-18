@@ -1,0 +1,7 @@
+{
+  "last_serial": 1,
+  "releases": {
+    "2.8.0": [{"upload_time_iso_8601": "2015-01-01T00:00:00Z", "yanked": false}],
+    "2.7.0": [{"upload_time_iso_8601": "2014-01-01T00:00:00Z", "yanked": false}]
+  }
+}
