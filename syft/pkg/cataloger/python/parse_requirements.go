@@ -3,9 +3,14 @@ package python
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"regexp"
+	"slices"
 	"strings"
+	"time"
 	"unicode"
 
 	pep440 "github.com/aquasecurity/go-pep440-version"
@@ -40,6 +45,17 @@ const (
 	// whiteSpaceNoNewlinePattern matches: (any whitespace character except for \r and \n)
 	whiteSpaceNoNewlinePattern = `[^\S\r\n]*`
 )
+
+type pypiJson struct {
+	LastSerial int                      `json:"last_serial"`
+	Releases   map[string][]pypiRelease `json:"releases,omitempty"`
+}
+
+type pypiRelease struct {
+	Version           string    // This is filled by us and not by PyPI
+	UploadTimeIso8601 time.Time `json:"upload_time_iso_8601"`
+	Yanked            bool      `json:"yanked"`
+}
 
 var requirementPattern = regexp.MustCompile(
 	`^` +
@@ -130,7 +146,7 @@ func (rp requirementsParser) parseRequirementsTxt(_ context.Context, _ file.Reso
 		}
 
 		name := removeExtras(req.Name)
-		version := parseVersion(req.VersionConstraint, rp.guessUnpinnedRequirements)
+		version := parseVersion(name, req.VersionConstraint, rp.guessUnpinnedRequirements)
 
 		if version == "" {
 			log.WithFields("path", reader.RealPath).Tracef("unable to determine package version in requirements.txt line: %q", line)
@@ -161,13 +177,13 @@ func (rp requirementsParser) parseRequirementsTxt(_ context.Context, _ file.Reso
 	return packages, nil, nil
 }
 
-func parseVersion(version string, guessFromConstraint bool) string {
+func parseVersion(name string, version string, guessFromConstraint bool) string {
 	if isPinnedConstraint(version) {
 		return strings.TrimSpace(strings.ReplaceAll(version, "==", ""))
 	}
 
 	if guessFromConstraint {
-		return guessVersion(version)
+		return guessVersion(name, version)
 	}
 
 	return ""
@@ -177,52 +193,78 @@ func isPinnedConstraint(version string) bool {
 	return strings.Contains(version, "==") && !strings.ContainsAny(version, "*,<>!")
 }
 
-func guessVersion(constraint string) string {
-	// handle "2.8.*" -> "2.8.0"
-	constraint = strings.ReplaceAll(constraint, "*", "0")
-	if isPinnedConstraint(constraint) {
-		return strings.TrimSpace(strings.ReplaceAll(constraint, "==", ""))
+func guessVersion(name string, constraint string) string {
+	if name == "" { // Package name is required to guess the version
+		return ""
 	}
-
-	constraints := strings.Split(constraint, ",")
-	filteredVersions := map[string]struct{}{}
-	for _, part := range constraints {
-		if strings.Contains(part, "!=") {
-			parts := strings.Split(part, "!=")
-			filteredVersions[strings.TrimSpace(parts[1])] = struct{}{}
-		}
-	}
-
-	var closestVersion *pep440.Version
-	for _, part := range constraints {
-		// ignore any parts that do not have '=' in them, >,<,~ are not valid semver
-		parts := strings.SplitAfter(part, "=")
-		if len(parts) < 2 {
-			continue
-		}
-		version, err := pep440.Parse(strings.TrimSpace(parts[1]))
-		if err != nil {
-			// ignore any parts that are not valid semver
-			continue
-		}
-		if _, ok := filteredVersions[version.String()]; ok {
-			continue
-		}
-
-		if strings.Contains(part, "==") {
-			parts := strings.Split(part, "==")
-			return strings.TrimSpace(parts[1])
-		}
-
-		if closestVersion == nil || version.GreaterThan(*closestVersion) {
-			closestVersion = &version
-		}
-	}
-	if closestVersion == nil {
+	// Query pypi for this package name and parse the JSON to extract a list of released versions
+	pypiPackageJSONURL := fmt.Sprintf("%v/pypi/%v/json", "https://pypi.org", name)
+	req, err := http.NewRequest(http.MethodGet, pypiPackageJSONURL, nil)
+	if err != nil {
 		return ""
 	}
 
-	return closestVersion.String()
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "" // network could be unreachable
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		return "" // reqeust / response to pypi could have timed out
+	}
+
+	pypiPackageJSONBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "" // http response data read could be corrupt
+	}
+	var pypiPackageJSONData pypiJson
+	err = json.Unmarshal(pypiPackageJSONBytes, &pypiPackageJSONData)
+	if err != nil {
+		return "" // JSON read from pypi could be corrupt
+	}
+	if pypiPackageJSONData.Releases == nil {
+		return "" // JSON read from pypi could be corrupt
+	}
+	var pypiPackageReleases []pypiRelease
+	for pypiPackageReleaseVer, releases := range pypiPackageJSONData.Releases {
+		for _, release := range releases {
+			release.Version = pypiPackageReleaseVer
+			pypiPackageReleases = append(pypiPackageReleases, release)
+			break
+		}
+	}
+
+	// Releases are checked in reverse order of their release. They have a better chance of matching the constraints
+	slices.SortStableFunc(pypiPackageReleases, func(a, b pypiRelease) int { return a.UploadTimeIso8601.Compare(b.UploadTimeIso8601) })
+	slices.Reverse(pypiPackageReleases)
+	classifiers, err := pep440.NewSpecifiers(constraint)
+	if err != nil && len(constraint) > 0 { // If constraint had a value, and it could not be parsed, then return a zero value
+		return ""
+	}
+	for _, pypiPackageRelease := range pypiPackageReleases {
+		// Skip any version that has "rc" in it
+		if strings.Contains(pypiPackageRelease.Version, "rc") {
+			continue
+		}
+		// Skip any version that was yanked
+		if pypiPackageRelease.Yanked {
+			continue
+		}
+		v, err := pep440.Parse(pypiPackageRelease.Version)
+		if err != nil {
+			continue
+		}
+		// If no constraints was set, then use the latest release version in pypi
+		if len(constraint) == 0 {
+			return pypiPackageRelease.Version
+		}
+		if classifiers.Check(v) {
+			return pypiPackageRelease.Version
+		}
+	}
+	return ""
 }
 
 // trimRequirementsTxtLine removes content from the given requirements.txt line

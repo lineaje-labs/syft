@@ -149,9 +149,7 @@ func (cfg Catalog) ToPackagesConfig() pkgcataloging.Config {
 		LinuxKernel: kernel.LinuxKernelCatalogerConfig{
 			CatalogModules: cfg.LinuxKernel.CatalogModules,
 		},
-		Python: python.CatalogerConfig{
-			GuessUnpinnedRequirements: cfg.Python.GuessUnpinnedRequirements,
-		},
+		Python: python.DefaultCatalogerConfig(),
 		JavaArchive: java.DefaultArchiveCatalogerConfig().
 			WithUseNetwork(cfg.Java.UseNetwork).
 			WithMavenBaseURL(cfg.Java.MavenURL).
