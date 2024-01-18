@@ -16,8 +16,8 @@ type CatalogerConfig struct {
 
 func DefaultCatalogerConfig() CatalogerConfig {
 	return CatalogerConfig{
-		GuessUnpinnedRequirements: false,
-		SearchRemoteLicenses:      false,
+		GuessUnpinnedRequirements: true,
+		SearchRemoteLicenses:      true,
 		PypiBaseURL:               pypiBaseURL,
 	}
 }
