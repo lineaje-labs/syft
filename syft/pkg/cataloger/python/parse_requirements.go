@@ -198,10 +198,6 @@ func guessVersion(name string, constraint string) string {
 	if name == "" { // Package name is required to guess the version
 		return ""
 	}
-	classifiers, err := pep440.NewSpecifiers(constraint)
-	if err != nil {
-		return ""
-	}
 	// Query pypi for this package name and parse the JSON to extract a list of released versions
 	pypiPackageJSONURL := fmt.Sprintf("%v/pypi/%v/json", "https://pypi.org", name)
 	req, err := http.NewRequest(http.MethodGet, pypiPackageJSONURL, nil)
@@ -244,6 +240,10 @@ func guessVersion(name string, constraint string) string {
 	// Releases are checked in reverse order of their release. They have a better chance of matching the constraints
 	slices.SortStableFunc(pypiPackageReleases, func(a, b pypiRelease) int { return a.UploadTimeIso8601.Compare(b.UploadTimeIso8601) })
 	slices.Reverse(pypiPackageReleases)
+	classifiers, err := pep440.NewSpecifiers(constraint)
+	if err != nil && len(constraint) > 0 { // If constraint had a value, and it could not be parsed, then return a zero value
+		return ""
+	}
 	for _, pypiPackageRelease := range pypiPackageReleases {
 		// Skip any version that has "rc" in it
 		if strings.Contains(pypiPackageRelease.Version, "rc") {
@@ -256,6 +256,10 @@ func guessVersion(name string, constraint string) string {
 		v, err := pep440.Parse(pypiPackageRelease.Version)
 		if err != nil {
 			continue
+		}
+		// If no constraints was set, then use the latest release version in pypi
+		if len(constraint) == 0 {
+			return pypiPackageRelease.Version
 		}
 		if classifiers.Check(v) {
 			return pypiPackageRelease.Version
