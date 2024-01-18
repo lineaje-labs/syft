@@ -18,7 +18,7 @@ type CatalogerConfig struct {
 
 func DefaultCatalogerConfig() CatalogerConfig {
 	return CatalogerConfig{
-		GuessUnpinnedRequirements: false,
+		GuessUnpinnedRequirements: true,
 	}
 }
 
