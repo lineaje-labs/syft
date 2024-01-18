@@ -162,9 +162,7 @@ func (cfg Catalog) ToPackagesConfig() pkgcataloging.Config {
 		LinuxKernel: kernel.LinuxKernelCatalogerConfig{
 			CatalogModules: cfg.LinuxKernel.CatalogModules,
 		},
-		Python: python.CatalogerConfig{
-			GuessUnpinnedRequirements: cfg.Python.GuessUnpinnedRequirements,
-		},
+		Python: python.DefaultCatalogerConfig(),
 		JavaArchive: java.DefaultArchiveCatalogerConfig().
 			WithUseMavenLocalRepository(*multiLevelOption(false, enrichmentEnabled(cfg.Enrich, task.Java, task.Maven), cfg.Java.UseMavenLocalRepository)).
 			WithMavenLocalRepositoryDir(cfg.Java.MavenLocalRepositoryDir).
