@@ -24,7 +24,17 @@ const pomXMLGlob = "*pom.xml"
 
 var propertyMatcher = regexp.MustCompile("[$][{][^}]+[}]")
 
-func parserPomXML(_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
+type pomParserAdapter struct {
+	skipTestComponents bool
+}
+
+func newPomParserAdaptor(skipTestComponents bool) pomParserAdapter {
+	return pomParserAdapter{skipTestComponents: skipTestComponents}
+}
+
+func (ppa pomParserAdapter) parserPomXML(
+	_ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser,
+) ([]pkg.Package, []artifact.Relationship, error) {
 	pom, err := decodePomXML(reader)
 	if err != nil {
 		return nil, nil, err
@@ -39,6 +49,10 @@ func parserPomXML(_ file.Resolver, _ *generic.Environment, reader file.LocationR
 				reader.Location.WithAnnotation(pkg.EvidenceAnnotationKey, pkg.PrimaryEvidenceAnnotation),
 			)
 			if p.Name == "" {
+				continue
+			}
+			// Skip components with a scope of Test if enabled
+			if ppa.skipTestComponents && dep.Scope != nil && *dep.Scope == "test" {
 				continue
 			}
 

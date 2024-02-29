@@ -19,6 +19,7 @@ type Config struct {
 	Parallelism                     int
 	ExcludeBinaryOverlapByOwnership bool
 	CleanupDisabled                 bool
+	SkipTestComponents              bool
 }
 
 func DefaultConfig() Config {
