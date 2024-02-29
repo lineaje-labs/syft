@@ -30,6 +30,10 @@ type ArchiveCatalogerConfig struct {
 	// app-config: java.max-parent-recursive-depth
 	MaxParentRecursiveDepth int `yaml:"max-parent-recursive-depth" json:"max-parent-recursive-depth" mapstructure:"max-parent-recursive-depth"`
 
+	// SkipTestComponents skips components with a scope of test from the dependency chain.
+	// app-config: java.no-test-components
+	SkipTestComponents             bool   `yaml:"no-test-components" json:"no-test-components" mapstructure:"no-test-components"`
+
 	// ResolveTransitiveDependencies enables resolving transitive dependencies for java packages found within archives.
 	// app-config: java.resolve-transitive-dependencies
 	ResolveTransitiveDependencies bool `yaml:"resolve-transitive-dependencies" json:"resolve-transitive-dependencies" mapstructure:"resolve-transitive-dependencies"`
@@ -72,6 +76,11 @@ func (j ArchiveCatalogerConfig) WithMavenBaseURL(input string) ArchiveCatalogerC
 
 func (j ArchiveCatalogerConfig) WithResolveTransitiveDependencies(resolveTransitiveDependencies bool) ArchiveCatalogerConfig {
 	j.ResolveTransitiveDependencies = resolveTransitiveDependencies
+	return j
+}
+
+func (j ArchiveCatalogerConfig) WithSkipTestComponents(skipTestComponents bool) ArchiveCatalogerConfig {
+	j.SkipTestComponents = skipTestComponents
 	return j
 }
 
