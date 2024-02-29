@@ -26,6 +26,7 @@ type CreateSBOMConfig struct {
 	Files              filecataloging.Config
 	Parallelism        int
 	CleanupDisabled    bool
+	SkipTestComponents bool
 	CatalogerSelection pkgcataloging.SelectionRequest
 
 	// audit what tool is being used to generate the SBOM
@@ -97,6 +98,12 @@ func (c *CreateSBOMConfig) WithParallelism(p int) *CreateSBOMConfig {
 // WithCleanupDisabled allows for setting if cleanup is to be performed at the end of the SBOM generation
 func (c *CreateSBOMConfig) WithCleanupDisabled(disabled bool) *CreateSBOMConfig {
 	c.CleanupDisabled = disabled
+	return c
+}
+
+// WithSkipTestComponents allows for setting if test components are to be skipped during SBOM generation
+func (c *CreateSBOMConfig) WithSkipTestComponents(skipTestComponents bool) *CreateSBOMConfig {
+	c.SkipTestComponents = skipTestComponents
 	return c
 }
 

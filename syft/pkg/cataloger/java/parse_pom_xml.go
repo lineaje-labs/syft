@@ -25,7 +25,9 @@ const pomXMLGlob = "*pom.xml"
 
 var propertyMatcher = regexp.MustCompile("[$][{][^}]+[}]")
 
-func (gap genericArchiveParserAdapter) parserPomXML(ctx context.Context, _ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
+func (gap genericArchiveParserAdapter) parserPomXML(
+	ctx context.Context, _ file.Resolver, _ *generic.Environment, reader file.LocationReadCloser,
+) ([]pkg.Package, []artifact.Relationship, error) {
 	pom, err := decodePomXML(reader)
 	if err != nil {
 		return nil, nil, err
@@ -42,6 +44,10 @@ func (gap genericArchiveParserAdapter) parserPomXML(ctx context.Context, _ file.
 				reader.Location.WithAnnotation(pkg.EvidenceAnnotationKey, pkg.PrimaryEvidenceAnnotation),
 			)
 			if p.Name == "" {
+				continue
+			}
+			// Skip components with a scope of Test if enabled
+			if gap.cfg.SkipTestComponents && dep.Scope != nil && *dep.Scope == "test" {
 				continue
 			}
 
@@ -100,7 +106,10 @@ func newPomProject(path string, p gopom.Project, location file.Location) *parsed
 	}
 }
 
-func newPackageFromPom(ctx context.Context, pom gopom.Project, dep gopom.Dependency, cfg ArchiveCatalogerConfig, locations ...file.Location) pkg.Package {
+func newPackageFromPom(
+	ctx context.Context, pom gopom.Project, dep gopom.Dependency, cfg ArchiveCatalogerConfig,
+	locations ...file.Location,
+) pkg.Package {
 	m := pkg.JavaArchive{
 		PomProperties: &pkg.JavaPomProperties{
 			GroupID:    resolveProperty(pom, dep.GroupID, "groupId"),

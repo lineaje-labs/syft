@@ -9,6 +9,7 @@ type ArchiveCatalogerConfig struct {
 	UseNetwork                     bool   `yaml:"use-network" json:"use-network" mapstructure:"use-network"`
 	MavenBaseURL                   string `yaml:"maven-base-url" json:"maven-base-url" mapstructure:"maven-base-url"`
 	MaxParentRecursiveDepth        int    `yaml:"max-parent-recursive-depth" json:"max-parent-recursive-depth" mapstructure:"max-parent-recursive-depth"`
+	SkipTestComponents             bool   `yaml:"no-test-components" json:"no-test-components" mapstructure:"no-test-components"`
 }
 
 func DefaultArchiveCatalogerConfig() ArchiveCatalogerConfig {
@@ -32,7 +33,14 @@ func (j ArchiveCatalogerConfig) WithMavenBaseURL(input string) ArchiveCatalogerC
 	return j
 }
 
-func (j ArchiveCatalogerConfig) WithArchiveTraversal(search cataloging.ArchiveSearchConfig, maxDepth int) ArchiveCatalogerConfig {
+func (j ArchiveCatalogerConfig) WithSkipTestComponents(skipTestComponents bool) ArchiveCatalogerConfig {
+	j.SkipTestComponents = skipTestComponents
+	return j
+}
+
+func (j ArchiveCatalogerConfig) WithArchiveTraversal(
+	search cataloging.ArchiveSearchConfig, maxDepth int,
+) ArchiveCatalogerConfig {
 	if maxDepth > 0 {
 		j.MaxParentRecursiveDepth = maxDepth
 	}

@@ -153,6 +153,7 @@ func (cfg Catalog) ToPackagesConfig() pkgcataloging.Config {
 		JavaArchive: java.DefaultArchiveCatalogerConfig().
 			WithUseNetwork(cfg.Java.UseNetwork).
 			WithMavenBaseURL(cfg.Java.MavenURL).
+			WithSkipTestComponents(cfg.Java.SkipTestComponents).
 			WithArchiveTraversal(archiveSearch, cfg.Java.MaxParentRecursiveDepth),
 	}
 }
@@ -202,6 +203,9 @@ func (cfg *Catalog) AddFlags(flags clio.FlagSet) {
 
 	flags.BoolVarP(&cfg.CleanupDisabled, "cleanup-disabled", "",
 		"do not clean any temporary directories created during sbom generation (default false)")
+
+	flags.BoolVarP(&cfg.Java.SkipTestComponents, "no-test-components", "",
+		"do not include any components with test scope in the generated sbom (default false)")
 }
 
 func (cfg *Catalog) DescribeFields(descriptions fangs.FieldDescriptionSet) {
