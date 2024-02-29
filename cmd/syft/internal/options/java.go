@@ -11,6 +11,7 @@ type javaConfig struct {
 	MavenLocalRepositoryDir string `yaml:"maven-local-repository-dir" json:"maven-local-repository-dir" mapstructure:"maven-local-repository-dir"`
 	MavenURL                string `yaml:"maven-url" json:"maven-url" mapstructure:"maven-url"`
 	MaxParentRecursiveDepth int    `yaml:"max-parent-recursive-depth" json:"max-parent-recursive-depth" mapstructure:"max-parent-recursive-depth"`
+	SkipTestComponents      bool   `yaml:"no-test-components" json:"no-test-components" mapstructure:"no-test-components"`
 }
 
 func defaultJavaConfig() javaConfig {

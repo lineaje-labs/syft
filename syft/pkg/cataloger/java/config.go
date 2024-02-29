@@ -11,6 +11,7 @@ type ArchiveCatalogerConfig struct {
 	MavenLocalRepositoryDir        string `yaml:"maven-localrepository-dir" json:"maven-localrepository-dir" mapstructure:"maven-localrepository-dir"`
 	MavenBaseURL                   string `yaml:"maven-base-url" json:"maven-base-url" mapstructure:"maven-base-url"`
 	MaxParentRecursiveDepth        int    `yaml:"max-parent-recursive-depth" json:"max-parent-recursive-depth" mapstructure:"max-parent-recursive-depth"`
+	SkipTestComponents             bool   `yaml:"no-test-components" json:"no-test-components" mapstructure:"no-test-components"`
 }
 
 func DefaultArchiveCatalogerConfig() ArchiveCatalogerConfig {
@@ -43,6 +44,11 @@ func (j ArchiveCatalogerConfig) WithMavenBaseURL(input string) ArchiveCatalogerC
 	if input != "" {
 		j.MavenBaseURL = input
 	}
+	return j
+}
+
+func (j ArchiveCatalogerConfig) WithSkipTestComponents(skipTestComponents bool) ArchiveCatalogerConfig {
+	j.SkipTestComponents = skipTestComponents
 	return j
 }
 

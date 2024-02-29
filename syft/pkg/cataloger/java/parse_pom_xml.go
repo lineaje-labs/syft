@@ -93,6 +93,13 @@ func processPomXML(ctx context.Context, r *mavenResolver, pom *gopom.Project, lo
 		if p == nil {
 			continue
 		}
+		if r != nil && r.cfg.SkipTestComponents {
+			if metaData, ok := p.Metadata.(pkg.JavaArchive); ok {
+				if metaData.PomProperties != nil && metaData.PomProperties.Scope == "test" {
+					continue
+				}
+			}
+		}
 		pkgs = append(pkgs, *p)
 	}
 
