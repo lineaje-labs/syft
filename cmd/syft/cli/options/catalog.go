@@ -40,6 +40,7 @@ type Catalog struct {
 	BasePath                        string       `yaml:"base-path" json:"base-path" mapstructure:"base-path"`                                                                               // specify base path for all file paths
 	ExcludeBinaryOverlapByOwnership bool         `yaml:"exclude-binary-overlap-by-ownership" json:"exclude-binary-overlap-by-ownership" mapstructure:"exclude-binary-overlap-by-ownership"` // exclude synthetic binary packages owned by os package files
 	CleanupDisabled                 bool         `yaml:"cleanup-disabled" json:"cleanup-disabled" mapstructure:"cleanup-disabled"`
+	SkipTestComponents              bool         `yaml:"no-test-components" json:"no-test-components" mapstructure:"no-test-components"`
 }
 
 var _ interface {
@@ -57,6 +58,7 @@ func DefaultCatalog() Catalog {
 		Parallelism:                     1,
 		ExcludeBinaryOverlapByOwnership: true,
 		CleanupDisabled:                 false,
+		SkipTestComponents:              false,
 	}
 }
 
@@ -96,6 +98,9 @@ func (cfg *Catalog) AddFlags(flags clio.FlagSet) {
 
 	flags.BoolVarP(&cfg.CleanupDisabled, "cleanup-disabled", "",
 		"do not clean any temporary directories created during sbom generation (default false)")
+
+	flags.BoolVarP(&cfg.SkipTestComponents, "no-test-components", "",
+		"do not include any components with test scope in the generated sbom (default false)")
 }
 
 func (cfg *Catalog) PostLoad() error {
@@ -150,9 +155,10 @@ func (cfg Catalog) ToCatalogerConfig() cataloger.Config {
 					IncludeUnindexedArchives: cfg.Package.SearchUnindexedArchives,
 				},
 				cfg.Java.MaxParentRecursiveDepth),
-		Python: pythonCataloger.DefaultCatalogerConfig(),
+		Python:                          pythonCataloger.DefaultCatalogerConfig(),
 		ExcludeBinaryOverlapByOwnership: cfg.ExcludeBinaryOverlapByOwnership,
 		CleanupDisabled:                 cfg.CleanupDisabled,
+		SkipTestComponents:              cfg.SkipTestComponents,
 	}
 }
 
