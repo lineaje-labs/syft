@@ -75,7 +75,7 @@ func (p pomXMLCataloger) Catalog(ctx context.Context, fileResolver file.Resolver
 		id := r.ResolveID(ctx, pom)
 		mainPkg := resolved[id]
 
-		newPkgs, newRelationships, newErrs := collectDependencies(ctx, r, resolved, mainPkg, pom, location, p.cfg.ResolveTransitiveDependencies)
+		newPkgs, newRelationships, newErrs := collectDependencies(ctx, r, resolved, mainPkg, pom, location, p.cfg.ResolveTransitiveDependencies, p.cfg.SkipTestComponents)
 		pkgs = append(pkgs, newPkgs...)
 		relationships = append(relationships, newRelationships...)
 		errs = unknown.Join(errs, newErrs)
@@ -150,7 +150,7 @@ func newPackageFromMavenPom(ctx context.Context, r *maven.Resolver, pom *maven.P
 	return p
 }
 
-func collectDependencies(ctx context.Context, r *maven.Resolver, resolved map[maven.ID]*pkg.Package, parentPkg *pkg.Package, pom *maven.Project, loc file.Location, includeTransitiveDependencies bool) ([]pkg.Package, []artifact.Relationship, error) {
+func collectDependencies(ctx context.Context, r *maven.Resolver, resolved map[maven.ID]*pkg.Package, parentPkg *pkg.Package, pom *maven.Project, loc file.Location, includeTransitiveDependencies bool, skipTestComponents bool) ([]pkg.Package, []artifact.Relationship, error) {
 	var errs error
 	var pkgs []pkg.Package
 	var relationships []artifact.Relationship
@@ -178,6 +178,13 @@ func collectDependencies(ctx context.Context, r *maven.Resolver, resolved map[ma
 				// we don't have a valid package, just continue to the next dependency
 				continue
 			}
+			if skipTestComponents { // skip test packages if enabled and continue to the next dependency
+				if metaData, ok := p.Metadata.(pkg.JavaArchive); ok {
+					if metaData.PomProperties != nil && metaData.PomProperties.Scope == "test" {
+						continue
+					}
+				}
+			}
 			depPkg = p
 			resolved[depID] = depPkg
 
@@ -188,7 +195,7 @@ func collectDependencies(ctx context.Context, r *maven.Resolver, resolved map[ma
 					log.WithFields("mavenID", depID, "error", err).Debug("error finding pom")
 				}
 				if depPom != nil {
-					transitivePkgs, transitiveRelationships, transitiveErrs := collectDependencies(ctx, r, resolved, depPkg, depPom, loc, includeTransitiveDependencies)
+					transitivePkgs, transitiveRelationships, transitiveErrs := collectDependencies(ctx, r, resolved, depPkg, depPom, loc, includeTransitiveDependencies, skipTestComponents)
 					pkgs = append(pkgs, transitivePkgs...)
 					relationships = append(relationships, transitiveRelationships...)
 					errs = unknown.Join(errs, transitiveErrs)
