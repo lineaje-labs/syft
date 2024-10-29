@@ -21,7 +21,7 @@ type ImageMetadata struct {
 
 // LayerMetadata represents all static metadata that defines what a container image layer is.
 type LayerMetadata struct {
-	MediaType string `json:"mediaType"`
-	Digest    string `json:"digest"`
-	Size      int64  `json:"size"`
+	MediaType string `json:"mediaType" cyclonedx:"mediaType"`
+	Digest    string `json:"digest" cyclonedx:"digest"`
+	Size      int64  `json:"size" cyclonedx:"size"`
 }
