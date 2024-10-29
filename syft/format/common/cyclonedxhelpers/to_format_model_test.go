@@ -385,10 +385,13 @@ func Test_toBomDescriptor(t *testing.T) {
 				Supplier:    nil,
 				Licenses:    nil,
 				Properties: &[]cyclonedx.Property{
-					{
-						Name:  "syft:image:labels:key1",
-						Value: "value1",
-					},
+					{Name: "syft:image:userInput", Value: ""},
+					{Name: "syft:image:imageID", Value: ""},
+					{Name: "syft:image:manifestDigest", Value: ""},
+					{Name: "syft:image:labels:key1", Value: "value1"},
+					{Name: "syft:image:manifest", Value: ""},
+					{Name: "syft:image:config", Value: ""},
+					{Name: "syft:image:imageSize", Value: "0"},
 				},
 			},
 		},
@@ -451,6 +454,14 @@ func Test_toBomDescriptor(t *testing.T) {
 					Name: "optional-supplier",
 				},
 				Licenses: nil,
+				Properties: &[]cyclonedx.Property{
+					{Name: "syft:image:userInput", Value: ""},
+					{Name: "syft:image:imageID", Value: ""},
+					{Name: "syft:image:manifestDigest", Value: ""},
+					{Name: "syft:image:manifest", Value: ""},
+					{Name: "syft:image:config", Value: ""},
+					{Name: "syft:image:imageSize", Value: "0"},
+				},
 			},
 		},
 	}
@@ -485,7 +496,14 @@ func Test_toBomProperties(t *testing.T) {
 					Labels: map[string]string{},
 				},
 			},
-			props: nil,
+			props: &[]cyclonedx.Property{
+				{Name: "syft:image:userInput", Value: ""},
+				{Name: "syft:image:imageID", Value: ""},
+				{Name: "syft:image:manifestDigest", Value: ""},
+				{Name: "syft:image:manifest", Value: ""},
+				{Name: "syft:image:config", Value: ""},
+				{Name: "syft:image:imageSize", Value: "0"},
+			},
 		},
 		{
 			name: "ImageMetadata with labels",
@@ -498,8 +516,14 @@ func Test_toBomProperties(t *testing.T) {
 				},
 			},
 			props: &[]cyclonedx.Property{
+				{Name: "syft:image:userInput", Value: ""},
+				{Name: "syft:image:imageID", Value: ""},
+				{Name: "syft:image:manifestDigest", Value: ""},
 				{Name: "syft:image:labels:label1", Value: "value1"},
 				{Name: "syft:image:labels:label2", Value: "value2"},
+				{Name: "syft:image:manifest", Value: ""},
+				{Name: "syft:image:config", Value: ""},
+				{Name: "syft:image:imageSize", Value: "0"},
 			},
 		},
 		{
