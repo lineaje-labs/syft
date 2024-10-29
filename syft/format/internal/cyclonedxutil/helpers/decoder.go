@@ -1,10 +1,12 @@
 package helpers
 
 import (
+	"encoding/base64"
 	"fmt"
+	"reflect"
+	"strconv"
 
 	"github.com/CycloneDX/cyclonedx-go"
-
 	"github.com/anchore/packageurl-go"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/linux"
@@ -215,6 +217,36 @@ func collectRelationships(bom *cyclonedx.BOM, s *sbom.SBOM, idMap map[string]int
 	}
 }
 
+func decodeLayers(vals map[string]string) []source.LayerMetadata {
+	v := Decode(reflect.TypeOf([]source.LayerMetadata{}), vals, "syft:image:layers", CycloneDXFields)
+	out, ok := v.([]source.LayerMetadata)
+	if !ok {
+		out = nil
+	}
+	return out
+}
+
+func decodeRepoDigests(vals map[string]string) []string {
+	v := Decode(reflect.TypeOf([]string{}), vals, "syft:image:repoDigests", CycloneDXFields)
+	out, ok := v.([]string)
+	if !ok {
+		out = nil
+	}
+	return out
+}
+
+func decodeRawByte(vals map[string]string, prefix string) []byte {
+	v := Decode(reflect.TypeOf(prefix), vals, prefix, CycloneDXFields)
+	out, ok := v.(string)
+	if !ok {
+		return nil
+	}
+	if byteData, err := base64.StdEncoding.DecodeString(out); err == nil {
+		return byteData
+	}
+	return nil
+}
+
 func extractComponents(meta *cyclonedx.Metadata) source.Description {
 	if meta == nil || meta.Component == nil {
 		return source.Description{}
@@ -223,21 +255,52 @@ func extractComponents(meta *cyclonedx.Metadata) source.Description {
 
 	switch c.Type {
 	case cyclonedx.ComponentTypeContainer:
+		// Changes done to read metadata properties from CycloneDX and save it in Image Metadata while converting to syft JSON
+		var userInput, imageID, manifestDigest string
 		var labels map[string]string
+		var layers []source.LayerMetadata
+		var repoDigests []string
+		var rawConfig, rawManifest []byte
+		var architecture, os, imageSize string
+		var imageSizeInt int64
 
 		if meta.Properties != nil {
+			metadataPropsMap := map[string]string{}
+			for _, p := range *meta.Properties {
+				metadataPropsMap[p.Name] = p.Value
+			}
+			DecodeInto(&userInput, metadataPropsMap, "syft:image:userInput", CycloneDXFields)
+			DecodeInto(&imageID, metadataPropsMap, "syft:image:imageID", CycloneDXFields)
+			DecodeInto(&manifestDigest, metadataPropsMap, "syft:image:manifestDigest", CycloneDXFields)
 			labels = decodeProperties(*meta.Properties, "syft:image:labels:")
+			layers = decodeLayers(metadataPropsMap)
+			repoDigests = decodeRepoDigests(metadataPropsMap)
+			rawConfig = decodeRawByte(metadataPropsMap, "syft:image:config")
+			rawManifest = decodeRawByte(metadataPropsMap, "syft:image:manifest")
+			DecodeInto(&imageSize, metadataPropsMap, "syft:image:imageSize", CycloneDXFields)
+			DecodeInto(&architecture, metadataPropsMap, "syft:image:architecture", CycloneDXFields)
+			DecodeInto(&os, metadataPropsMap, "syft:image:os", CycloneDXFields)
+			imageSizeInt, _ = strconv.ParseInt(imageSize, 10, 64)
 		}
 
 		return source.Description{
-			ID: "",
+			ID:      c.BOMRef,
+			Name:    c.Name,
+			Version: c.Version,
 			// TODO: can we decode alias name-version somehow? (it isn't be encoded in the first place yet)
 
 			Metadata: source.ImageMetadata{
-				UserInput:      c.Name,
-				ID:             c.BOMRef,
-				ManifestDigest: c.Version,
+				UserInput:      userInput,
+				ID:             imageID,
+				ManifestDigest: manifestDigest,
 				Labels:         labels,
+				Layers:         layers,
+				RepoDigests:    repoDigests,
+				RawConfig:      rawConfig,
+				RawManifest:    rawManifest,
+				Size:           imageSizeInt,
+				Architecture:   architecture,
+				OS:             os,
 			},
 		}
 	case cyclonedx.ComponentTypeFile:
