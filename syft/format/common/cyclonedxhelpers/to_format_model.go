@@ -1,8 +1,10 @@
 package cyclonedxhelpers
 
 import (
+	"encoding/base64"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -277,10 +279,51 @@ func toDependencies(relationships []artifact.Relationship) []cyclonedx.Dependenc
 func toBomProperties(srcMetadata source.Description) *[]cyclonedx.Property {
 	metadata, ok := srcMetadata.Metadata.(source.ImageMetadata)
 	if ok {
-		props := helpers.EncodeProperties(metadata.Labels, "syft:image:labels")
+		// Changes done to persist Image metadata as CycloneDX properties
+		props := []cyclonedx.Property{
+			{
+				Name:  "syft:image:userInput",
+				Value: metadata.UserInput,
+			},
+		}
+		props = append(props, cyclonedx.Property{
+			Name:  "syft:image:imageID",
+			Value: metadata.ID,
+		})
+		props = append(props, cyclonedx.Property{
+			Name:  "syft:image:manifestDigest",
+			Value: metadata.ManifestDigest,
+		})
+		props = append(props, helpers.EncodeProperties(metadata.Labels, "syft:image:labels")...)
 		// return nil if props is nil to avoid creating a pointer to a nil slice,
 		// which results in a null JSON value that does not comply with the CycloneDX schema.
 		// https://github.com/anchore/grype/issues/1759
+		props = append(props, helpers.EncodeProperties(metadata.Layers, "syft:image:layers")...)
+		props = append(props, helpers.EncodeProperties(metadata.RepoDigests, "syft:image:repoDigests")...)
+		props = append(props, cyclonedx.Property{
+			Name:  "syft:image:manifest",
+			Value: base64.StdEncoding.EncodeToString(metadata.RawManifest),
+		})
+		props = append(props, cyclonedx.Property{
+			Name:  "syft:image:config",
+			Value: base64.StdEncoding.EncodeToString(metadata.RawConfig),
+		})
+		props = append(props, cyclonedx.Property{
+			Name:  "syft:image:imageSize",
+			Value: strconv.FormatInt(metadata.Size, 10),
+		})
+		if len(metadata.Architecture) > 0 {
+			props = append(props, cyclonedx.Property{
+				Name:  "syft:image:architecture",
+				Value: metadata.Architecture,
+			})
+		}
+		if len(metadata.OS) > 0 {
+			props = append(props, cyclonedx.Property{
+				Name:  "syft:image:os",
+				Value: metadata.OS,
+			})
+		}
 		if props == nil {
 			return nil
 		}
