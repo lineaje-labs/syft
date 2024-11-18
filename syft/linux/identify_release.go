@@ -46,11 +46,12 @@ var identityFiles = []parseEntry{
 	},
 	// /////////////////////////////////////////////////////////////////////////////////////////////////////
 	// IMPORTANT! checking busybox must be last since other distros contain the busybox binary
-	{
-		// check for busybox
-		path: "/bin/busybox",
-		fn:   parseBusyBox,
-	},
+	// Commented as this is not a recognized distribution string
+	// {
+	// 	// check for busybox
+	// 	path: "/bin/busybox",
+	// 	fn:   parseBusyBox,
+	// },
 	// /////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 

@@ -48,14 +48,7 @@ func TestIdentifyRelease(t *testing.T) {
 		},
 		{
 			fixture: "testdata/os/busybox",
-			release: &Release{
-				PrettyName: "BusyBox v1.31.1",
-				Name:       "busybox",
-				ID:         "busybox",
-				IDLike:     []string{"busybox"},
-				Version:    "1.31.1",
-				VersionID:  "1.31.1",
-			},
+			release: nil, // busybox is not a recognized distribution
 		},
 		{
 			fixture: "testdata/os/centos",
