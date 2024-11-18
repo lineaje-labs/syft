@@ -36,11 +36,14 @@ type DpkgDBEntry struct {
 	// address inside angle brackets <> (in RFC822 format).
 	Maintainer string `json:"maintainer"`
 
+	// License is present in the control file and not in the status file. This is only read to populate the parent license structure
+	License string `json:"-"`
+
 	InstalledSize int `json:"installedSize" cyclonedx:"installedSize"`
 
 	// Description contains a description of the binary package, consisting of two parts, the synopsis or the short
 	// description, and the long description (in a multiline format).
-	Description string `hash:"ignore" json:"-"`
+	Description string `hash:"ignore" json:"description,omitempty"`
 
 	// Provides is a virtual package that is provided by one or more packages. A virtual package is one which appears
 	// in the Provides control field of another package. The effect is as if the package(s) which provide a particular
