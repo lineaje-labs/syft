@@ -109,7 +109,7 @@ func Test_packageURL(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := packageURL(test.metadata, test.distro)
+			actual := packageURL(test.metadata, test.distro, file.Location{})
 			if diff := cmp.Diff(test.expected, actual); diff != "" {
 				t.Errorf("unexpected packageURL (-want +got):\n%s", diff)
 			}

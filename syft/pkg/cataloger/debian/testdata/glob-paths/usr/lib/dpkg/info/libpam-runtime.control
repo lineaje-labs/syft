@@ -1,0 +1,8 @@
+Package: libpam-runtime
+Version: 1.1.8-3.6
+Architecture: all
+Maintainer: Steve Langasek <vorlon@debian.org>
+Source: pam
+Description: Runtime support for the PAM library
+ Contains configuration files and directories required for
+ authentication to work on Debian systems.

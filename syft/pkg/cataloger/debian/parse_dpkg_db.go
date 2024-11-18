@@ -197,6 +197,52 @@ func parseDpkgStatusEntry(reader *bufio.Reader) (*dpkgExtractedMetadata, error) 
 	return &raw, retErr
 }
 
+// parseDpkgControlEntry returns an individual Dpkg entry from the reader.
+// It is similar to parseDpkgStatusEntry but does not return errEndOfPackages if there are no more packages to parse from the reader.
+func parseDpkgControlEntry(reader *bufio.Reader) (*pkg.DpkgDBEntry, error) {
+	dpkgFields, err := extractAllFields(reader)
+	if err != nil {
+		if !errors.Is(err, errEndOfPackages) {
+			return nil, err
+		}
+		if len(dpkgFields) == 0 {
+			return nil, err
+		}
+	}
+
+	raw := dpkgExtractedMetadata{}
+	err = mapstructure.Decode(dpkgFields, &raw)
+	if err != nil {
+		return nil, err
+	}
+
+	sourceName, sourceVersion := extractSourceVersion(raw.Source)
+	if sourceVersion != "" {
+		raw.SourceVersion = sourceVersion
+		raw.Source = sourceName
+	}
+
+	if raw.Package == "" {
+		return nil, nil
+	}
+
+	entry := pkg.DpkgDBEntry{
+		Package:       raw.Package,
+		Source:        raw.Source,
+		Version:       raw.Version,
+		SourceVersion: raw.SourceVersion,
+		Architecture:  raw.Architecture,
+		Maintainer:    raw.Maintainer,
+		License:       raw.License,
+		InstalledSize: raw.InstalledSize,
+		Description:   raw.Description,
+		Provides:      splitPkgList(raw.Provides),
+		Depends:       splitPkgList(raw.Depends),
+		PreDepends:    splitPkgList(raw.PreDepends),
+	}
+	return &entry, nil
+}
+
 func splitPkgList(pkgList string) (ret []string) {
 	fields := strings.Split(pkgList, ",")
 	for _, field := range fields {
