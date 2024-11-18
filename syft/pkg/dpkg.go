@@ -41,11 +41,14 @@ type DpkgDBEntry struct {
 	// Maintainer is the package maintainer's name and email in RFC822 format (name must come first, then email in angle brackets)
 	Maintainer string `json:"maintainer"`
 
+	// License is present in the control file and not in the status file. This is only read to populate the parent license structure
+	License string `json:"-"`
+
 	// InstalledSize is the total size of installed files in kilobytes
 	InstalledSize int `json:"installedSize" cyclonedx:"installedSize"`
 
 	// Description is a human-readable package description with synopsis (first line) and long description (multiline format)
-	Description string `hash:"ignore" json:"-"`
+	Description string `hash:"ignore" json:"description,omitempty"`
 
 	// Provides are the virtual packages provided by this package (allows other packages to depend on capabilities. Can include versioned provides like "libdigest-md5-perl (= 2.55.01)")
 	Provides []string `json:"provides,omitempty"`
