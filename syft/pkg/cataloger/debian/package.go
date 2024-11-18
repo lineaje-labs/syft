@@ -1,6 +1,7 @@
 package debian
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"path"
@@ -17,9 +18,10 @@ import (
 )
 
 const (
-	md5sumsExt   = ".md5sums"
-	conffilesExt = ".conffiles"
-	docsPath     = "/usr/share/doc"
+	md5sumsExt      = ".md5sums"
+	conffilesExt    = ".conffiles"
+	controlFilesExt = ".control"
+	docsPath        = "/usr/share/doc"
 )
 
 func newDpkgPackage(d pkg.DpkgDBEntry, dbLocation file.Location, resolver file.Resolver, release *linux.Release) pkg.Package {
@@ -30,7 +32,7 @@ func newDpkgPackage(d pkg.DpkgDBEntry, dbLocation file.Location, resolver file.R
 		Version:   d.Version,
 		Licenses:  pkg.NewLicenseSet(licenses...),
 		Locations: file.NewLocationSet(dbLocation.WithAnnotation(pkg.EvidenceAnnotationKey, pkg.PrimaryEvidenceAnnotation)),
-		PURL:      packageURL(d, release),
+		PURL:      packageURL(d, release, dbLocation),
 		Type:      pkg.DebPkg,
 		Metadata:  d,
 	}
@@ -43,6 +45,9 @@ func newDpkgPackage(d pkg.DpkgDBEntry, dbLocation file.Location, resolver file.R
 
 		// fetch additional data from the copyright file to derive the license information
 		addLicenses(resolver, dbLocation, &p)
+
+		// fetch additional optional data from the control for description and license information
+		addFieldsFromControlFile(resolver, dbLocation, &p)
 	}
 
 	p.SetID()
@@ -51,38 +56,57 @@ func newDpkgPackage(d pkg.DpkgDBEntry, dbLocation file.Location, resolver file.R
 }
 
 // PackageURL returns the PURL for the specific Debian package (see https://github.com/package-url/purl-spec)
-func packageURL(m pkg.DpkgDBEntry, distro *linux.Release) string {
-	if distro == nil {
-		return ""
-	}
-
-	if distro.ID != "debian" && !internal.StringInSlice("debian", distro.IDLike) {
-		return ""
-	}
-
-	qualifiers := map[string]string{
-		pkg.PURLQualifierArch: m.Architecture,
-	}
-
-	if m.Source != "" {
-		if m.SourceVersion != "" {
-			qualifiers[pkg.PURLQualifierUpstream] = fmt.Sprintf("%s@%s", m.Source, m.SourceVersion)
-		} else {
-			qualifiers[pkg.PURLQualifierUpstream] = m.Source
+// If file location has "/opkg/" (OpenWrt) in it, then the PackageURL is customized
+func packageURL(m pkg.DpkgDBEntry, distro *linux.Release, dbLocation file.Location) string {
+	if distro != nil && (distro.ID == "debian" || internal.StringInSlice("debian", distro.IDLike)) {
+		qualifiers := map[string]string{
+			pkg.PURLQualifierArch: m.Architecture,
 		}
-	}
 
-	return packageurl.NewPackageURL(
-		packageurl.TypeDebian,
-		distro.ID,
-		m.Package,
-		m.Version,
-		pkg.PURLQualifiers(
-			qualifiers,
-			distro,
-		),
-		"",
-	).ToString()
+		if m.Source != "" {
+			if m.SourceVersion != "" {
+				qualifiers[pkg.PURLQualifierUpstream] = fmt.Sprintf("%s@%s", m.Source, m.SourceVersion)
+			} else {
+				qualifiers[pkg.PURLQualifierUpstream] = m.Source
+			}
+		}
+
+		return packageurl.NewPackageURL(
+			packageurl.TypeDebian,
+			distro.ID,
+			m.Package,
+			m.Version,
+			pkg.PURLQualifiers(
+				qualifiers,
+				distro,
+			),
+			"",
+		).ToString()
+
+	} else if strings.Contains(dbLocation.AccessPath, "/opkg/") {
+		qualifiers := map[string]string{
+			pkg.PURLQualifierArch: m.Architecture,
+		}
+
+		if m.Source != "" {
+			if m.SourceVersion != "" {
+				qualifiers[pkg.PURLQualifierUpstream] = fmt.Sprintf("%s@%s", m.Source, m.SourceVersion)
+			} else {
+				qualifiers[pkg.PURLQualifierUpstream] = m.Source
+			}
+		}
+
+		return packageurl.NewPackageURL(
+			"opkg",
+			"openwrt",
+			m.Package,
+			m.Version,
+			nil,
+			"",
+		).ToString()
+	} else {
+		return ""
+	}
 }
 
 func addLicenses(resolver file.Resolver, dbLocation file.Location, p *pkg.Package) {
@@ -167,6 +191,69 @@ func getAdditionalFileListing(resolver file.Resolver, dbLocation file.Location, 
 	}
 
 	return files, locations
+}
+
+func addFieldsFromControlFile(resolver file.Resolver, dbLocation file.Location, p *pkg.Package) {
+	metadata, ok := p.Metadata.(pkg.DpkgDBEntry)
+	if !ok {
+		log.WithFields("package", p).Warn("unable to extract DPKG metadata to add data from control file")
+		return
+	}
+
+	// get additional details from the control file
+	controlFileReader, controlFileLocation := fetchControlFileContents(resolver, dbLocation, metadata)
+
+	if controlFileReader != nil && controlFileLocation != nil {
+		defer internal.CloseAndLogError(controlFileReader, controlFileLocation.AccessPath)
+		// add additional data from control file
+		controlFileBuffedReader := bufio.NewReader(controlFileReader)
+		entry, err := parseDpkgControlEntry(controlFileBuffedReader)
+		if err != nil {
+			return
+		}
+		var metadataModified bool
+		if len(metadata.Description) == 0 && len(entry.Description) > 0 {
+			metadata.Description = entry.Description
+			metadataModified = true
+		}
+		if len(metadata.Source) == 0 && len(entry.Source) > 0 {
+			metadata.Source = entry.Source
+			metadataModified = true
+		}
+		if metadataModified {
+			// persist alterations
+			p.Metadata = metadata
+		}
+		if len(entry.License) > 0 {
+			p.Licenses.Add(pkg.NewLicenseFromLocations(entry.License, controlFileLocation.WithoutAnnotations()))
+		}
+		// keep a record of the file where this was discovered
+		p.Locations.Add(*controlFileLocation)
+		// "kernel" is not a valid package name, change it to "linux" so that CPE lookups for vulnerability passes
+		if p.Name == "kernel" {
+			p.Name = "linux"
+		}
+	}
+}
+
+func fetchControlFileContents(resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry) (io.ReadCloser, *file.Location) {
+	var controlFileReader io.ReadCloser
+	var err error
+
+	if resolver == nil {
+		return nil, nil
+	}
+	parentPath := filepath.Dir(dbLocation.RealPath)
+	location := resolver.RelativeFileByPath(dbLocation, path.Join(parentPath, "info", m.Package+controlFilesExt))
+	if location == nil {
+		return nil, nil
+	}
+	l := location.WithAnnotation(pkg.EvidenceAnnotationKey, pkg.SupportingEvidenceAnnotation)
+	controlFileReader, err = resolver.FileContentsByLocation(*location)
+	if err != nil {
+		log.Warnf("failed to fetch deb control contents (package=%s): %+v", m.Package, err)
+	}
+	return controlFileReader, &l
 }
 
 func fetchMd5Contents(resolver file.Resolver, dbLocation file.Location, m pkg.DpkgDBEntry) (io.ReadCloser, *file.Location) {
