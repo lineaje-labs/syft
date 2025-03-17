@@ -87,7 +87,8 @@ loop:
 
 		additionalRoots, err := indexer(currentPath, stager)
 		if err != nil {
-			return fmt.Errorf("unable to index filesystem path=%q: %w", currentPath, err)
+			log.WithFields("path", currentPath).Warnf("unable to index filesystem path=%q: %w", currentPath, err)
+			continue
 		}
 
 		for _, newRoot := range additionalRoots {
