@@ -4,4 +4,5 @@ package pkg
 type CocoaPodfileLockEntry struct {
 	// Checksum is the SHA-1 hash of the podspec file for integrity verification (generated via `pod ipc spec ... | openssl sha1`), ensuring all team members use the same pod specification version
 	Checksum string `mapstructure:"checksum" json:"checksum"`
+	Dependencies []string `mapstructure:"dependencies" json:"dependencies"`
 }
