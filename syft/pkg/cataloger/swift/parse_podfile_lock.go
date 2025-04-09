@@ -13,6 +13,7 @@ import (
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/generic"
+	"github.com/anchore/syft/syft/pkg/cataloger/internal/dependency"
 )
 
 var _ generic.Parser = parsePodfileLock
@@ -37,6 +38,36 @@ func parsePodfileLock(_ context.Context, _ file.Resolver, _ *generic.Environment
 		return nil, nil, fmt.Errorf("unable to parse yaml: %w", err)
 	}
 
+	var prevPodName string
+	// Map of Pod name vs list of Pod subspec names
+	// A pod name is a subspec, if it has a prefix of "previous-pod-name/"
+	// For example, "libwebp" is the parent of "libwebp/demux"
+	podNameVsDependencies := make(map[string][]string)
+	for _, podInterface := range podfile.Pods {
+		var podBlob string
+		switch v := podInterface.(type) {
+		case map[string]interface{}:
+			for k := range v {
+				podBlob = k
+			}
+		case string:
+			podBlob = v
+		default:
+			return nil, nil, fmt.Errorf("malformed podfile.lock")
+		}
+		splits := strings.Split(podBlob, " ")
+		podName := splits[0]
+		// If the previous pod name is a prefix of the current pod name, then the current pod name is its dependency
+		if strings.HasPrefix(podName, prevPodName + "/") {
+			if deps, found := podNameVsDependencies[prevPodName]; found {
+				podNameVsDependencies[prevPodName] = append(deps, podName)
+			} else {
+				podNameVsDependencies[prevPodName] = []string{podName}
+			}
+		} else {
+			prevPodName = podName
+		}
+	}
 	var pkgs []pkg.Package
 	for _, podInterface := range podfile.Pods {
 		var podBlob string
@@ -60,6 +91,11 @@ func parsePodfileLock(_ context.Context, _ file.Resolver, _ *generic.Environment
 		if !exists {
 			return nil, nil, fmt.Errorf("malformed podfile.lock: incomplete checksums")
 		}
+		var pkgDeps []string
+		// Fetch the dependencies found in pkgs
+		if deps, found := podNameVsDependencies[podName]; found {
+			pkgDeps = deps
+		}
 
 		pkgs = append(
 			pkgs,
@@ -67,10 +103,14 @@ func parsePodfileLock(_ context.Context, _ file.Resolver, _ *generic.Environment
 				podName,
 				podVersion,
 				pkgHash,
+				pkgDeps,
 				reader.Location.WithAnnotation(pkg.EvidenceAnnotationKey, pkg.PrimaryEvidenceAnnotation),
 			),
 		)
 	}
 
-	return pkgs, nil, unknown.IfEmptyf(pkgs, "unable to determine packages")
+	// since we would never expect to create relationships for packages across multiple podfile.lock files
+	// we should do this on a file parser level (each podfile.lock) instead of a cataloger level (across all
+	// podfile.lock files)
+	return pkgs, dependency.Resolve(podfileLockDependencySpecifier, pkgs), unknown.IfEmptyf(pkgs, "unable to determine packages")
 }
