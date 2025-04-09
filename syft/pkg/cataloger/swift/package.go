@@ -46,6 +46,14 @@ func newCocoaPodsPackage(name, version, hash string, locations ...file.Location)
 
 func cocoaPodsPackageURL(name, version string) string {
 	var qualifiers packageurl.Qualifiers
+	var subPath string
+	if strings.Contains(name, "/") {
+		nameParts := strings.Split(name, "/")
+		name = nameParts[0]
+		if len(nameParts) > 1 {
+			subPath = strings.Join(nameParts[1:], "/")
+		}
+	}
 
 	return packageurl.NewPackageURL(
 		packageurl.TypeCocoapods,
@@ -53,7 +61,7 @@ func cocoaPodsPackageURL(name, version string) string {
 		name,
 		version,
 		qualifiers,
-		"",
+		subPath,
 	).ToString()
 }
 
