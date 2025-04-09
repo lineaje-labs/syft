@@ -26,7 +26,7 @@ func newSwiftPackageManagerPackage(name, version, sourceURL, revision string, lo
 	return p
 }
 
-func newCocoaPodsPackage(name, version, hash string, locations ...file.Location) pkg.Package {
+func newCocoaPodsPackage(name, version, hash string, deps []string, locations ...file.Location) pkg.Package {
 	p := pkg.Package{
 		Name:      name,
 		Version:   version,
@@ -36,6 +36,7 @@ func newCocoaPodsPackage(name, version, hash string, locations ...file.Location)
 		Language:  pkg.Swift,
 		Metadata: pkg.CocoaPodfileLockEntry{
 			Checksum: hash,
+			Dependencies: deps,
 		},
 	}
 
