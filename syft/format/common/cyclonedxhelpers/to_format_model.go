@@ -8,14 +8,12 @@ import (
 	"strings"
 	"time"
 
-	cyclonedx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/uuid"
 
-	stfile "github.com/anchore/stereoscope/pkg/file"
 	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/cpe"
-	"github.com/anchore/syft/syft/file"
 	formatInternal "github.com/anchore/syft/syft/format/internal"
 	"github.com/anchore/syft/syft/format/internal/cyclonedxutil/helpers"
 	"github.com/anchore/syft/syft/linux"
@@ -23,18 +21,6 @@ import (
 	"github.com/anchore/syft/syft/sbom"
 	"github.com/anchore/syft/syft/source"
 )
-
-var cycloneDXValidHash = map[string]cyclonedx.HashAlgorithm{
-	"sha1":       cyclonedx.HashAlgoSHA1,
-	"md5":        cyclonedx.HashAlgoMD5,
-	"sha256":     cyclonedx.HashAlgoSHA256,
-	"sha384":     cyclonedx.HashAlgoSHA384,
-	"sha512":     cyclonedx.HashAlgoSHA512,
-	"blake2b256": cyclonedx.HashAlgoBlake2b_256,
-	"blake2b384": cyclonedx.HashAlgoBlake2b_384,
-	"blake2b512": cyclonedx.HashAlgoBlake2b_512,
-	"blake3":     cyclonedx.HashAlgoBlake3,
-}
 
 func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 	cdxBOM := cyclonedx.NewBOM()
@@ -45,8 +31,7 @@ func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 	cdxBOM.SerialNumber = uuid.New().URN()
 	cdxBOM.Metadata = toBomDescriptor(s.Descriptor.Name, s.Descriptor.Version, s.Source)
 
-	locationSorter, coordinateSorter := formatInternal.GetLocationSorters(s)
-	top, entries := formatInternal.ArchiveEntries(s.AllCoordinates(), coordinateSorter)
+	locationSorter, _ := formatInternal.GetLocationSorters(s)
 
 	// Packages
 	packages := s.Artifacts.Packages.Sorted()
@@ -55,8 +40,6 @@ func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 		components[i] = helpers.EncodeComponent(p, s.Source.Supplier, locationSorter)
 	}
 	components = append(components, toOSComponent(s.Artifacts.LinuxDistribution)...)
-
-	components = append(components, toFileComponents(s.Artifacts, entries, top)...)
 	cdxBOM.Components = &components
 
 	dependencies := toDependencies(s.Relationships)
@@ -65,59 +48,6 @@ func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 	}
 
 	return cdxBOM
-}
-
-// toFileComponents describes each of coordinates that is a regular file with metadata, named by its path
-// (within its archive, for a file within one), with the files within it nested in its component.
-func toFileComponents(artifacts sbom.Artifacts, entries map[file.Coordinates][]file.Coordinates, coordinates []file.Coordinates) []cyclonedx.Component {
-	var components []cyclonedx.Component
-	for _, coordinate := range coordinates {
-		nested := toFileComponents(artifacts, entries, entries[coordinate])
-		// no file metadata then don't include in SBOM
-		// the syft config allows for sometimes only capturing files owned by packages
-		// so there can be a map miss here where we have less metadata than all coordinates
-		metadata, exists := artifacts.FileMetadata[coordinate]
-		if !isFileComponent(metadata, exists) && len(nested) == 0 {
-			continue
-		}
-
-		cdxHashes := digestsToHashes(artifacts.FileDigests[coordinate])
-		component := cyclonedx.Component{
-			BOMRef: string(coordinate.ID()),
-			Type:   cyclonedx.ComponentTypeFile,
-			Name:   coordinate.LocalPath(),
-			Hashes: &cdxHashes,
-		}
-		if len(nested) > 0 {
-			component.Components = &nested
-		}
-		components = append(components, component)
-	}
-	return components
-}
-
-// isFileComponent skips dirs, symlinks and sockets for the final bom
-func isFileComponent(metadata file.Metadata, exists bool) bool {
-	return exists &&
-		metadata.Type != stfile.TypeDirectory &&
-		metadata.Type != stfile.TypeSocket &&
-		metadata.Type != stfile.TypeSymLink
-}
-
-func digestsToHashes(digests []file.Digest) []cyclonedx.Hash {
-	var hashes []cyclonedx.Hash
-	for _, digest := range digests {
-		lookup := strings.ToLower(digest.Algorithm)
-		cdxAlgo, exists := cycloneDXValidHash[lookup]
-		if !exists {
-			continue
-		}
-		hashes = append(hashes, cyclonedx.Hash{
-			Algorithm: cdxAlgo,
-			Value:     digest.Value,
-		})
-	}
-	return hashes
 }
 
 func toOSComponent(distro *linux.Release) []cyclonedx.Component {
