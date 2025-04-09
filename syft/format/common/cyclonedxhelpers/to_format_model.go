@@ -8,10 +8,9 @@ import (
 	"strings"
 	"time"
 
-	cyclonedx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/CycloneDX/cyclonedx-go"
 	"github.com/google/uuid"
 
-	stfile "github.com/anchore/stereoscope/pkg/file"
 	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/cpe"
@@ -23,18 +22,6 @@ import (
 	"github.com/anchore/syft/syft/source"
 )
 
-var cycloneDXValidHash = map[string]cyclonedx.HashAlgorithm{
-	"sha1":       cyclonedx.HashAlgoSHA1,
-	"md5":        cyclonedx.HashAlgoMD5,
-	"sha256":     cyclonedx.HashAlgoSHA256,
-	"sha384":     cyclonedx.HashAlgoSHA384,
-	"sha512":     cyclonedx.HashAlgoSHA512,
-	"blake2b256": cyclonedx.HashAlgoBlake2b_256,
-	"blake2b384": cyclonedx.HashAlgoBlake2b_384,
-	"blake2b512": cyclonedx.HashAlgoBlake2b_512,
-	"blake3":     cyclonedx.HashAlgoBlake3,
-}
-
 func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 	cdxBOM := cyclonedx.NewBOM()
 
@@ -44,7 +31,7 @@ func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 	cdxBOM.SerialNumber = uuid.New().URN()
 	cdxBOM.Metadata = toBomDescriptor(s.Descriptor.Name, s.Descriptor.Version, s.Source)
 
-	coordinates, locationSorter := getCoordinates(s)
+	_, locationSorter := getCoordinates(s)
 
 	// Packages
 	packages := s.Artifacts.Packages.Sorted()
@@ -53,41 +40,6 @@ func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 		components[i] = helpers.EncodeComponent(p, s.Source.Supplier, locationSorter)
 	}
 	components = append(components, toOSComponent(s.Artifacts.LinuxDistribution)...)
-
-	artifacts := s.Artifacts
-
-	for _, coordinate := range coordinates {
-		var metadata *file.Metadata
-		// File Info
-		fileMetadata, exists := artifacts.FileMetadata[coordinate]
-		// no file metadata then don't include in SBOM
-		// the syft config allows for sometimes only capturing files owned by packages
-		// so there can be a map miss here where we have less metadata than all coordinates
-		if !exists {
-			continue
-		}
-		if fileMetadata.Type == stfile.TypeDirectory ||
-			fileMetadata.Type == stfile.TypeSocket ||
-			fileMetadata.Type == stfile.TypeSymLink {
-			// skip dir, symlinks and sockets for the final bom
-			continue
-		}
-		metadata = &fileMetadata
-
-		// Digests
-		var digests []file.Digest
-		if digestsForLocation, exists := artifacts.FileDigests[coordinate]; exists {
-			digests = digestsForLocation
-		}
-
-		cdxHashes := digestsToHashes(digests)
-		components = append(components, cyclonedx.Component{
-			BOMRef: string(coordinate.ID()),
-			Type:   cyclonedx.ComponentTypeFile,
-			Name:   metadata.Path,
-			Hashes: &cdxHashes,
-		})
-	}
 	cdxBOM.Components = &components
 
 	dependencies := toDependencies(s.Relationships)
@@ -100,33 +52,17 @@ func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 
 func getCoordinates(s sbom.SBOM) ([]file.Coordinates, func(a, b file.Location) int) {
 	var layers []string
-	if m, ok := s.Source.Metadata.(source.ImageMetadata); ok {
-		for _, l := range m.Layers {
-			layers = append(layers, l.Digest)
-		}
-	}
+    if m, ok := s.Source.Metadata.(source.ImageMetadata); ok {
+            for _, l := range m.Layers {
+                    layers = append(layers, l.Digest)
+            }
+    }
 
-	coordSorter := file.CoordinatesSorter(layers)
-	coordinates := s.AllCoordinates()
+    coordSorter := file.CoordinatesSorter(layers)
+    coordinates := s.AllCoordinates()
 
-	slices.SortFunc(coordinates, coordSorter)
-	return coordinates, file.LocationSorter(layers)
-}
-
-func digestsToHashes(digests []file.Digest) []cyclonedx.Hash {
-	var hashes []cyclonedx.Hash
-	for _, digest := range digests {
-		lookup := strings.ToLower(digest.Algorithm)
-		cdxAlgo, exists := cycloneDXValidHash[lookup]
-		if !exists {
-			continue
-		}
-		hashes = append(hashes, cyclonedx.Hash{
-			Algorithm: cdxAlgo,
-			Value:     digest.Value,
-		})
-	}
-	return hashes
+    slices.SortFunc(coordinates, coordSorter)
+    return coordinates, file.LocationSorter(layers)
 }
 
 func toOSComponent(distro *linux.Release) []cyclonedx.Component {
