@@ -20,7 +20,7 @@ import (
 // declare enum with modelartifactory types
 const (
 	HuggingFace = "huggingface"
-	LocalModel  = "local_model"
+	CustomModel = "custommodel"
 )
 
 // parseConfigJSON parses a config.json file and returns discovered model artifacts
@@ -85,9 +85,9 @@ func parseConfigJSON(_ context.Context, resolver file.Resolver, env *generic.Env
 			}
 			modelName = dirName
 		}
-		modelInfo.Artifactory = LocalModel
+		modelInfo.Artifactory = CustomModel
 		version = "UNKNOWN"
-		purl = getAIModelPurl(LocalModel, modelName, version)
+		purl = getAIModelPurl(CustomModel, modelName, version)
 	}
 
 	// Create the main package

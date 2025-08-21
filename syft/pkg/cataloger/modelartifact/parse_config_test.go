@@ -22,17 +22,17 @@ func TestParseConfigJSON(t *testing.T) {
 		expectedType  string
 		shouldDetect  bool
 	}{
-		// {
-		// 	name: "valid model config with _name_or_path",
-		// 	configContent: `{
-		// 		"name_or_path": "microsoft/DialoGPT-medium",
-		// 		"model_type": "gpt2",
-		// 		"architectures": ["GPT2LMHeadModel"]
-		// 	}`,
-		// 	expectedName: "microsoft/DialoGPT-medium",
-		// 	expectedType: "gpt2",
-		// 	shouldDetect: true,
-		// },
+		{
+			name: "valid model config with _name_or_path",
+			configContent: `{
+				"name_or_path": "microsoft/DialoGPT-medium",
+				"model_type": "gpt2",
+				"architectures": ["GPT2LMHeadModel"]
+			}`,
+			expectedName: "microsoft/DialoGPT-medium",
+			expectedType: "gpt2",
+			shouldDetect: true,
+		},
 		{
 			name: "valid model config with model_type only",
 			configContent: `{
