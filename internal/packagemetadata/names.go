@@ -128,6 +128,7 @@ var jsonTypes = makeJSONTypes(
 	jsonNames(pkg.HomebrewFormula{}, "homebrew-formula"),
 	jsonNames(pkg.AppleAppBundleEntry{}, "apple-app-bundle-entry"),
 	jsonNames(pkg.LuaRocksPackage{}, "luarocks-package"),
+	jsonNames(pkg.ModelArtifact{}, "model-artifact"),
 	jsonNames(pkg.TerraformLockProviderEntry{}, "terraform-lock-provider-entry"),
 	jsonNames(pkg.DotnetPackagesLockEntry{}, "dotnet-packages-lock-entry"),
 	jsonNames(pkg.CondaMetaPackage{}, "conda-metadata-entry", "CondaPackageMetadata"),

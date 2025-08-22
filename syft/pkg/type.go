@@ -58,6 +58,7 @@ const (
 	HomebrewPkg             Type = "homebrew"
 	AppleAppBundlePkg       Type = "apple-app-bundle"
 	ModelPkg                Type = "model"
+	ModelArtifactPkg        Type = "aimodel"
 )
 
 // AllPkgs represents all supported package types
@@ -106,6 +107,7 @@ var AllPkgs = []Type{
 	HomebrewPkg,
 	AppleAppBundlePkg,
 	ModelPkg,
+	ModelArtifactPkg,
 }
 
 // PackageURLType returns the PURL package type for the current package.
@@ -186,6 +188,8 @@ func (t Type) PackageURLType() string {
 		return "wordpress-plugin"
 	case HomebrewPkg:
 		return "homebrew"
+	case ModelArtifactPkg:
+		return "model-artifact"
 	default:
 		// TODO: should this be a "generic" purl type instead?
 		return ""
@@ -278,6 +282,8 @@ func TypeByName(name string) Type {
 		return WordpressPluginPkg
 	case "homebrew":
 		return HomebrewPkg
+	case "model-artifact", "aimodel":
+		return ModelArtifactPkg
 	default:
 		return UnknownPkg
 	}

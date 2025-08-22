@@ -383,6 +383,14 @@ func Test_SourceInfo(t *testing.T) {
 				"",
 			},
 		},
+		{
+			input: pkg.Package{
+				Type: pkg.ModelArtifactPkg,
+			},
+			expected: []string{
+				"acquired package info from AI model config",
+			},
+		},
 	}
 	var pkgTypes []pkg.Type
 	for _, test := range tests {
