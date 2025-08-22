@@ -146,6 +146,11 @@ func TestTypeFromPURL(t *testing.T) {
 			purl:     "pkg:generic/conda@1.2.3",
 			expected: CondaPkg,
 		},
+		{
+			name:     "aimodel",
+			purl:     "pkg:aimodel/huggingface/owner/model@1.0.0",
+			expected: ModelArtifactPkg,
+		},
 	}
 
 	var pkgTypes = strset.New()
