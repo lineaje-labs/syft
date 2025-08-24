@@ -1,15 +1,18 @@
 package java
 
 import (
+	"cmp"
 	"context"
 	"crypto"
 	"fmt"
 	"io"
+	"iter"
 	"os"
 	"path"
 	"slices"
 	"strings"
 
+	"github.com/scylladb/go-set/strset"
 	"golang.org/x/exp/maps"
 
 	"github.com/anchore/syft/internal"
@@ -249,7 +252,7 @@ func (j *archiveParser) discoverMainPackage(ctx context.Context) (*pkg.Package, 
 	}
 
 	// grab and assign digest for the entire archive
-	digests, err := getDigestsFromArchive(j.archivePath)
+	digests, err := getDigestsFromArchive(ctx, j.archivePath)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +283,7 @@ func (j *archiveParser) discoverMainPackage(ctx context.Context) (*pkg.Package, 
 func (j *archiveParser) discoverNameVersionLicense(ctx context.Context, manifest *pkg.JavaManifest) (string, string, []pkg.License, error) {
 	// we use j.location because we want to associate the license declaration with where we discovered the contents in the manifest
 	// TODO: when we support locations of paths within archives we should start passing the specific manifest location object instead of the top jar
-	lics := pkg.NewLicensesFromLocation(j.location, selectLicenses(manifest)...)
+	lics := pkg.NewLicensesFromLocationWithContext(ctx, j.location, selectLicenses(manifest)...)
 	/*
 		We should name and version from, in this order:
 		1. pom.properties if we find exactly 1
@@ -351,10 +354,10 @@ func (j *archiveParser) findLicenseFromJavaMetadata(ctx context.Context, groupID
 		}
 	}
 
-	return toPkgLicenses(&j.location, pomLicenses)
+	return toPkgLicenses(ctx, &j.location, pomLicenses)
 }
 
-func toPkgLicenses(location *file.Location, licenses []maven.License) []pkg.License {
+func toPkgLicenses(ctx context.Context, location *file.Location, licenses []maven.License) []pkg.License {
 	var out []pkg.License
 	for _, license := range licenses {
 		name := ""
@@ -365,10 +368,14 @@ func toPkgLicenses(location *file.Location, licenses []maven.License) []pkg.Lice
 		if license.URL != nil {
 			url = *license.URL
 		}
+		// note: it is possible to:
+		// - have a license without a URL
+		// - have license and a URL
+		// - have a URL without a license (this is weird, but can happen)
 		if name == "" && url == "" {
 			continue
 		}
-		out = append(out, pkg.NewLicenseFromFields(name, url, location))
+		out = append(out, pkg.NewLicenseFromFieldsWithContext(ctx, name, url, location))
 	}
 	return out
 }
@@ -387,20 +394,32 @@ func (j *archiveParser) discoverMainPackageFromPomInfo(ctx context.Context) (gro
 	projects, _ := pomProjectByParentPath(j.archivePath, j.location, j.fileManifest.GlobMatch(false, pomXMLGlob))
 
 	// map of all the artifacts in the pom properties, in order to chek exact match with the filename
-	artifactsMap := make(map[string]bool)
+	artifactsMap := strset.New()
 	for _, propertiesObj := range properties {
-		artifactsMap[propertiesObj.ArtifactID] = true
+		artifactsMap.Add(propertiesObj.ArtifactID)
 	}
 
-	parentPaths := maps.Keys(properties)
-	slices.Sort(parentPaths)
-	for _, parentPath := range parentPaths {
-		propertiesObj := properties[parentPath]
+	for parentPath, propertiesObj := range sortedIter(properties) {
+		// the logic for selecting the best name is as follows:
+		// if we find an artifact id AND group id which are both contained in the filename
+		// OR if we have an artifact id that exactly matches the filename, prefer this
+		// OTHERWISE track the first matching pom properties with a pom.xml
+		// FINALLY return the first matching pom properties
 		if artifactIDMatchesFilename(propertiesObj.ArtifactID, j.fileInfo.name, artifactsMap) {
-			pomProperties = propertiesObj
+			if pomProperties.ArtifactID == "" { // keep the first match, or overwrite if we find more specific entries
+				pomProperties = propertiesObj
+			}
 			if proj, exists := projects[parentPath]; exists {
-				parsedPom = proj
-				break
+				if parsedPom == nil { // keep the first matching artifact if we don't find an exact match or groupid + artfiact id match
+					pomProperties = propertiesObj // set this, as it may not be the first entry found
+					parsedPom = proj
+				}
+				// if artifact ID is the entire filename or BOTH artifactID and groupID are contained in the artifact, prefer this match
+				if strings.Contains(j.fileInfo.name, propertiesObj.GroupID) || j.fileInfo.name == propertiesObj.ArtifactID {
+					pomProperties = propertiesObj // this is an exact match, use it
+					parsedPom = proj
+					break
+				}
 			}
 		}
 	}
@@ -425,12 +444,13 @@ func (j *archiveParser) discoverMainPackageFromPomInfo(ctx context.Context) (gro
 	return group, name, version, parsedPom
 }
 
-func artifactIDMatchesFilename(artifactID, fileName string, artifactsMap map[string]bool) bool {
+// artifactIDMatchesFilename returns true if one starts with the other
+func artifactIDMatchesFilename(artifactID, fileName string, artifactsMap *strset.Set) bool {
 	if artifactID == "" || fileName == "" {
 		return false
 	}
 	// Ensure true is returned when filename matches the artifact ID, prevent random retrieval by checking prefix and suffix
-	if _, exists := artifactsMap[fileName]; exists {
+	if artifactsMap.Has(fileName) {
 		return artifactID == fileName
 	}
 	// Use fallback check with suffix and prefix if no POM properties file matches the exact artifact name
@@ -460,7 +480,7 @@ func (j *archiveParser) discoverPkgsFromAllMavenFiles(ctx context.Context, paren
 		return nil, err
 	}
 
-	for parentPath, propertiesObj := range properties {
+	for parentPath, propertiesObj := range sortedIter(properties) {
 		var parsedPom *parsedPomProject
 		if proj, exists := projects[parentPath]; exists {
 			parsedPom = proj
@@ -475,7 +495,7 @@ func (j *archiveParser) discoverPkgsFromAllMavenFiles(ctx context.Context, paren
 	return pkgs, nil
 }
 
-func getDigestsFromArchive(archivePath string) ([]file.Digest, error) {
+func getDigestsFromArchive(ctx context.Context, archivePath string) ([]file.Digest, error) {
 	archiveCloser, err := os.Open(archivePath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open archive path (%s): %w", archivePath, err)
@@ -483,7 +503,7 @@ func getDigestsFromArchive(archivePath string) ([]file.Digest, error) {
 	defer internal.CloseAndLogError(archiveCloser, archivePath)
 
 	// grab and assign digest for the entire archive
-	digests, err := intFile.NewDigestsFromFile(archiveCloser, javaArchiveHashes)
+	digests, err := intFile.NewDigestsFromFile(ctx, archiveCloser, javaArchiveHashes)
 	if err != nil {
 		log.Debugf("failed to create digest for file=%q: %+v", archivePath, err)
 	}
@@ -492,7 +512,7 @@ func getDigestsFromArchive(archivePath string) ([]file.Digest, error) {
 }
 
 func (j *archiveParser) getLicenseFromFileInArchive(ctx context.Context) ([]pkg.License, error) {
-	var fileLicenses []pkg.License
+	var out []pkg.License
 	for _, filename := range licenses.FileNames() {
 		licenseMatches := j.fileManifest.GlobMatch(true, "/META-INF/"+filename)
 		if len(licenseMatches) == 0 {
@@ -509,19 +529,15 @@ func (j *archiveParser) getLicenseFromFileInArchive(ctx context.Context) ([]pkg.
 			for _, licenseMatch := range licenseMatches {
 				licenseContents := contents[licenseMatch]
 				r := strings.NewReader(licenseContents)
-				parsed, err := j.licenseScanner.PkgSearch(ctx, file.NewLocationReadCloser(j.location, io.NopCloser(r)))
-				if err != nil {
-					return nil, err
-				}
-
-				if len(parsed) > 0 {
-					fileLicenses = append(fileLicenses, parsed...)
+				lics := pkg.NewLicensesFromReadCloserWithContext(ctx, file.NewLocationReadCloser(j.location, io.NopCloser(r)))
+				if len(lics) > 0 {
+					out = append(out, lics...)
 				}
 			}
 		}
 	}
 
-	return fileLicenses, nil
+	return out, nil
 }
 
 func (j *archiveParser) discoverPkgsFromNestedArchives(ctx context.Context, parentPkg *pkg.Package) ([]pkg.Package, []artifact.Relationship, error) {
@@ -546,7 +562,7 @@ func discoverPkgsFromOpeners(ctx context.Context, location file.Location, opener
 	var pkgs []pkg.Package
 	var relationships []artifact.Relationship
 
-	for pathWithinArchive, archiveOpener := range openers {
+	for pathWithinArchive, archiveOpener := range sortedIter(openers) {
 		nestedPkgs, nestedRelationships, err := discoverPkgsFromOpener(ctx, location, pathWithinArchive, archiveOpener, cfg, parentPkg)
 		if err != nil {
 			log.WithFields("location", location.Path(), "error", err).Debug("unable to discover java packages from opener")
@@ -604,7 +620,7 @@ func pomPropertiesByParentPath(archivePath string, location file.Location, extra
 	}
 
 	propertiesByParentPath := make(map[string]pkg.JavaPomProperties)
-	for filePath, fileContents := range contentsOfMavenPropertiesFiles {
+	for filePath, fileContents := range sortedIter(contentsOfMavenPropertiesFiles) {
 		pomProperties, err := parsePomProperties(filePath, strings.NewReader(fileContents))
 		if err != nil {
 			log.WithFields("contents-path", filePath, "location", location.Path(), "error", err).Debug("failed to parse pom.properties")
@@ -633,7 +649,7 @@ func pomProjectByParentPath(archivePath string, location file.Location, extractP
 	}
 
 	projectByParentPath := make(map[string]*parsedPomProject)
-	for filePath, fileContents := range contentsOfMavenProjectFiles {
+	for filePath, fileContents := range sortedIter(contentsOfMavenProjectFiles) {
 		// TODO: when we support locations of paths within archives we should start passing the specific pom.xml location object instead of the top jar
 		pom, err := maven.ParsePomXML(strings.NewReader(fileContents))
 		if err != nil {
@@ -692,7 +708,7 @@ func newPackageFromMavenData(ctx context.Context, r *maven.Resolver, pomProperti
 		log.WithFields("error", err, "mavenID", maven.NewID(pomProperties.GroupID, pomProperties.ArtifactID, pomProperties.Version)).Trace("error attempting to resolve licenses")
 	}
 
-	licenseSet := pkg.NewLicenseSet(toPkgLicenses(&location, pomLicenses)...)
+	licenseSet := pkg.NewLicenseSet(toPkgLicenses(ctx, &location, pomLicenses)...)
 
 	p := pkg.Package{
 		Name:    pomProperties.ArtifactID,
@@ -782,5 +798,17 @@ func updateParentPackage(p pkg.Package, parentPkg *pkg.Package) {
 	if ok && parentMetadata.PomProperties == nil {
 		parentMetadata.PomProperties = &pomPropertiesCopy
 		parentPkg.Metadata = parentMetadata
+	}
+}
+
+func sortedIter[K cmp.Ordered, V any](values map[K]V) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		keys := maps.Keys(values)
+		slices.Sort(keys)
+		for _, key := range keys {
+			if !yield(key, values[key]) {
+				return
+			}
+		}
 	}
 }

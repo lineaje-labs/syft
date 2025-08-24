@@ -5,7 +5,6 @@ import (
 
 	"github.com/CycloneDX/cyclonedx-go"
 
-	"github.com/anchore/packageurl-go"
 	"github.com/anchore/syft/syft/artifact"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
@@ -66,12 +65,16 @@ func collectPackages(component *cyclonedx.Component, s *sbom.SBOM, idMap map[str
 	case cyclonedx.ComponentTypeApplication, cyclonedx.ComponentTypeFramework, cyclonedx.ComponentTypeLibrary:
 		p := decodeComponent(component)
 		idMap[component.BOMRef] = p
-		syftID := extractSyftPacakgeID(component.BOMRef)
-		if syftID != "" {
-			idMap[syftID] = p
+		if component.BOMRef != "" {
+			// always prefer the IDs from the SBOM over derived IDs
+			p.OverrideID(artifact.ID(component.BOMRef))
+		} else {
+			p.SetID()
 		}
-		// TODO there must be a better way than needing to call this manually:
-		p.SetID()
+		syftID := p.ID()
+		if syftID != "" {
+			idMap[string(syftID)] = p
+		}
 		s.Artifacts.Packages.Add(*p)
 	}
 
@@ -80,19 +83,6 @@ func collectPackages(component *cyclonedx.Component, s *sbom.SBOM, idMap map[str
 			collectPackages(&(*component.Components)[i], s, idMap)
 		}
 	}
-}
-
-func extractSyftPacakgeID(i string) string {
-	instance, err := packageurl.FromString(i)
-	if err != nil {
-		return ""
-	}
-	for _, q := range instance.Qualifiers {
-		if q.Key == "package-id" {
-			return q.Value
-		}
-	}
-	return ""
 }
 
 func linuxReleaseFromComponents(components []cyclonedx.Component) *linux.Release {
@@ -221,6 +211,16 @@ func extractComponents(meta *cyclonedx.Metadata) source.Description {
 	}
 	c := meta.Component
 
+	supplier := ""
+	// First check component-level supplier
+	if c.Supplier != nil && c.Supplier.Name != "" {
+		supplier = c.Supplier.Name
+	}
+	// Fall back to metadata-level supplier if component supplier is not set
+	if supplier == "" && meta.Supplier != nil && meta.Supplier.Name != "" {
+		supplier = meta.Supplier.Name
+	}
+
 	switch c.Type {
 	case cyclonedx.ComponentTypeContainer:
 		var labels map[string]string
@@ -230,7 +230,8 @@ func extractComponents(meta *cyclonedx.Metadata) source.Description {
 		}
 
 		return source.Description{
-			ID: "",
+			ID:       "",
+			Supplier: supplier,
 			// TODO: can we decode alias name-version somehow? (it isn't be encoded in the first place yet)
 
 			Metadata: source.ImageMetadata{
@@ -246,6 +247,7 @@ func extractComponents(meta *cyclonedx.Metadata) source.Description {
 		// TODO: this is lossy... we can't know if this is a file or a directory
 		return source.Description{
 			ID:       "",
+			Supplier: supplier,
 			Metadata: source.FileMetadata{Path: c.Name},
 		}
 	}

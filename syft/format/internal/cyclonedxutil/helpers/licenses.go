@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"context"
 	"encoding/base64"
 	"strings"
 
@@ -58,11 +59,14 @@ func decodeLicenses(c *cyclonedx.Component) []pkg.License {
 		// these fields are mutually exclusive in the spec
 		switch {
 		case l.License != nil && l.License.ID != "":
-			licenses = append(licenses, pkg.NewLicenseFromURLs(l.License.ID, l.License.URL))
+			licenses = append(licenses, pkg.NewLicenseFromURLsWithContext(context.TODO(), l.License.ID, l.License.URL))
 		case l.License != nil && l.License.Name != "":
-			licenses = append(licenses, pkg.NewLicenseFromURLs(l.License.Name, l.License.URL))
+			licenses = append(licenses, pkg.NewLicenseFromURLsWithContext(context.TODO(), l.License.Name, l.License.URL))
+		case l.License != nil && l.License.URL != "":
+			// Try to enrich license from URL when ID and Name are empty
+			licenses = append(licenses, pkg.NewLicenseFromURLsWithContext(context.TODO(), "", l.License.URL))
 		case l.Expression != "":
-			licenses = append(licenses, pkg.NewLicense(l.Expression))
+			licenses = append(licenses, pkg.NewLicenseWithContext(context.TODO(), l.Expression))
 		default:
 		}
 	}
@@ -162,10 +166,18 @@ func processCustomLicense(l pkg.License) cyclonedx.Licenses {
 func processLicenseURLs(l pkg.License, spdxID string, populate *cyclonedx.Licenses) {
 	for _, url := range l.URLs {
 		if spdxID == "" {
+			// CycloneDX requires either an id or name to be present for a license
+			// If l.Value is empty, use the URL as the name to ensure schema compliance
+			// at this point we've already tried to enrich the license we just don't want the format
+			// conversion to be lossy here
+			name := l.Value
+			if name == "" {
+				name = url
+			}
 			*populate = append(*populate, cyclonedx.LicenseChoice{
 				License: &cyclonedx.License{
 					URL:  url,
-					Name: l.Value,
+					Name: name,
 				},
 			})
 		} else {
@@ -213,13 +225,15 @@ func reduceOuter(expression string) string {
 func isBalanced(expression string) bool {
 	count := 0
 	for _, c := range expression {
-		if c == '(' {
+		switch c {
+		case '(':
 			count++
-		} else if c == ')' {
+		case ')':
 			count--
 			if count < 0 {
 				return false
 			}
+		default:
 		}
 	}
 	return count == 0

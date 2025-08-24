@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"os"
 
+	_ "modernc.org/sqlite" // required for rpmdb and other features
+
 	"github.com/anchore/syft/syft"
 	"github.com/anchore/syft/syft/cataloging"
 	"github.com/anchore/syft/syft/cataloging/pkgcataloging"
@@ -30,7 +32,6 @@ func main() {
 	if err := enc.Encode(sbom.Descriptor.Configuration); err != nil {
 		panic(err)
 	}
-
 }
 
 func imageReference() string {

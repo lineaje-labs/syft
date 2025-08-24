@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/anchore/go-logger"
+	"github.com/anchore/go-sync"
 	"github.com/anchore/syft/internal"
 	"github.com/anchore/syft/internal/log"
 	"github.com/anchore/syft/internal/unknown"
 	"github.com/anchore/syft/syft/artifact"
+	"github.com/anchore/syft/syft/cataloging"
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/linux"
 	"github.com/anchore/syft/syft/pkg"
@@ -51,6 +53,7 @@ func (p resolvingProcessorWrapper) process(ctx context.Context, resolver file.Re
 type Cataloger struct {
 	processors        []processExecutor
 	requesters        []requester
+	checks            []func() error
 	upstreamCataloger string
 }
 
@@ -125,6 +128,11 @@ func (c *Cataloger) WithResolvingProcessors(processors ...ResolvingProcessor) *C
 	return c
 }
 
+func (c *Cataloger) WithChecks(checks ...func() error) *Cataloger {
+	c.checks = append(c.checks, checks...)
+	return c
+}
+
 func makeRequests(parser Parser, locations []file.Location) []request {
 	var requests []request
 	for _, l := range locations {
@@ -150,9 +158,14 @@ func (c *Cataloger) Name() string {
 
 // Catalog is given an object to resolve file references and content, this function returns any discovered Packages after analyzing the catalog source.
 func (c *Cataloger) Catalog(ctx context.Context, resolver file.Resolver) ([]pkg.Package, []artifact.Relationship, error) {
+	for _, check := range c.checks {
+		if err := check(); err != nil {
+			return nil, nil, err
+		}
+	}
+
 	var packages []pkg.Package
 	var relationships []artifact.Relationship
-	var errs error
 
 	lgr := log.Nested("cataloger", c.upstreamCataloger)
 
@@ -161,7 +174,11 @@ func (c *Cataloger) Catalog(ctx context.Context, resolver file.Resolver) ([]pkg.
 		LinuxRelease: linux.IdentifyRelease(resolver),
 	}
 
-	for _, req := range c.selectFiles(resolver) {
+	type result struct {
+		pkgs []pkg.Package
+		rels []artifact.Relationship
+	}
+	errs := sync.Collect(&ctx, cataloging.ExecutorFile, sync.ToSeq(c.selectFiles(resolver)), func(req request) (result, error) {
 		location, parser := req.Location, req.Parser
 
 		log.WithFields("path", location.RealPath).Trace("parsing file contents")
@@ -169,16 +186,16 @@ func (c *Cataloger) Catalog(ctx context.Context, resolver file.Resolver) ([]pkg.
 		discoveredPackages, discoveredRelationships, err := invokeParser(ctx, resolver, location, lgr, parser, &env)
 		if err != nil {
 			// parsers may return errors and valid packages / relationships
-			errs = unknown.Append(errs, location, err)
+			err = unknown.New(location, err)
 		}
-
-		for _, p := range discoveredPackages {
+		return result{discoveredPackages, discoveredRelationships}, err
+	}, func(_ request, res result) {
+		for _, p := range res.pkgs {
 			p.FoundBy = c.upstreamCataloger
 			packages = append(packages, p)
 		}
-
-		relationships = append(relationships, discoveredRelationships...)
-	}
+		relationships = append(relationships, res.rels...)
+	})
 	return c.process(ctx, resolver, packages, relationships, errs)
 }
 

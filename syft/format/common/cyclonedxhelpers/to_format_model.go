@@ -42,17 +42,18 @@ func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 	cdxBOM.SerialNumber = uuid.New().URN()
 	cdxBOM.Metadata = toBomDescriptor(s.Descriptor.Name, s.Descriptor.Version, s.Source)
 
+	coordinates, locationSorter := getCoordinates(s)
+
 	// Packages
 	packages := s.Artifacts.Packages.Sorted()
 	components := make([]cyclonedx.Component, len(packages))
 	for i, p := range packages {
-		components[i] = helpers.EncodeComponent(p)
+		components[i] = helpers.EncodeComponent(p, s.Source.Supplier, locationSorter)
 	}
 	components = append(components, toOSComponent(s.Artifacts.LinuxDistribution)...)
 
-	// Files
 	artifacts := s.Artifacts
-	coordinates := s.AllCoordinates()
+
 	for _, coordinate := range coordinates {
 		var metadata *file.Metadata
 		// File Info
@@ -93,6 +94,21 @@ func ToFormatModel(s sbom.SBOM) *cyclonedx.BOM {
 	}
 
 	return cdxBOM
+}
+
+func getCoordinates(s sbom.SBOM) ([]file.Coordinates, func(a, b file.Location) int) {
+	var layers []string
+	if m, ok := s.Source.Metadata.(source.ImageMetadata); ok {
+		for _, l := range m.Layers {
+			layers = append(layers, l.Digest)
+		}
+	}
+
+	coordSorter := file.CoordinatesSorter(layers)
+	coordinates := s.AllCoordinates()
+
+	slices.SortFunc(coordinates, coordSorter)
+	return coordinates, file.LocationSorter(layers)
 }
 
 func digestsToHashes(digests []file.Digest) []cyclonedx.Hash {
@@ -204,9 +220,20 @@ func toBomDescriptor(name, version string, srcMetadata source.Description) *cycl
 				},
 			},
 		},
+		Supplier:   toBomSupplier(srcMetadata),
 		Properties: toBomProperties(srcMetadata),
 		Component:  toBomDescriptorComponent(srcMetadata),
 	}
+}
+
+func toBomSupplier(srcMetadata source.Description) *cyclonedx.OrganizationalEntity {
+	if srcMetadata.Supplier != "" {
+		return &cyclonedx.OrganizationalEntity{
+			Name: srcMetadata.Supplier,
+		}
+	}
+
+	return nil
 }
 
 // used to indicate that a relationship listed under the syft artifact package can be represented as a cyclonedx dependency.
@@ -305,10 +332,11 @@ func toBomDescriptorComponent(srcMetadata source.Description) *cyclonedx.Compone
 			log.Debugf("unable to get fingerprint of source image metadata=%s: %+v", metadata.ID, err)
 		}
 		return &cyclonedx.Component{
-			BOMRef:  string(bomRef),
-			Type:    cyclonedx.ComponentTypeContainer,
-			Name:    name,
-			Version: version,
+			BOMRef:   string(bomRef),
+			Type:     cyclonedx.ComponentTypeContainer,
+			Name:     name,
+			Version:  version,
+			Supplier: toBomSupplier(srcMetadata),
 		}
 	case source.DirectoryMetadata:
 		if name == "" {
@@ -321,9 +349,10 @@ func toBomDescriptorComponent(srcMetadata source.Description) *cyclonedx.Compone
 		return &cyclonedx.Component{
 			BOMRef: string(bomRef),
 			// TODO: this is lossy... we can't know if this is a file or a directory
-			Type:    cyclonedx.ComponentTypeFile,
-			Name:    name,
-			Version: version,
+			Type:     cyclonedx.ComponentTypeFile,
+			Name:     name,
+			Version:  version,
+			Supplier: toBomSupplier(srcMetadata),
 		}
 	case source.FileMetadata:
 		if name == "" {
@@ -336,9 +365,10 @@ func toBomDescriptorComponent(srcMetadata source.Description) *cyclonedx.Compone
 		return &cyclonedx.Component{
 			BOMRef: string(bomRef),
 			// TODO: this is lossy... we can't know if this is a file or a directory
-			Type:    cyclonedx.ComponentTypeFile,
-			Name:    name,
-			Version: version,
+			Type:     cyclonedx.ComponentTypeFile,
+			Name:     name,
+			Version:  version,
+			Supplier: toBomSupplier(srcMetadata),
 		}
 	}
 

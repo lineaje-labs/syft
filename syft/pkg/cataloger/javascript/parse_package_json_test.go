@@ -1,6 +1,7 @@
 package javascript
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,6 +12,7 @@ import (
 )
 
 func TestParsePackageJSON(t *testing.T) {
+	ctx := context.TODO()
 	tests := []struct {
 		Fixture     string
 		ExpectedPkg pkg.Package
@@ -24,7 +26,7 @@ func TestParsePackageJSON(t *testing.T) {
 				Type:     pkg.NpmPkg,
 				Language: pkg.JavaScript,
 				Licenses: pkg.NewLicenseSet(
-					pkg.NewLicenseFromLocations("Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package.json")),
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package.json")),
 				),
 				Metadata: pkg.NpmPackage{
 					Name:        "npm",
@@ -45,7 +47,7 @@ func TestParsePackageJSON(t *testing.T) {
 				Type:     pkg.NpmPkg,
 				Language: pkg.JavaScript,
 				Licenses: pkg.NewLicenseSet(
-					pkg.NewLicenseFromLocations("ISC", file.NewLocation("test-fixtures/pkg-json/package-license-object.json")),
+					pkg.NewLicenseFromLocationsWithContext(ctx, "ISC", file.NewLocation("test-fixtures/pkg-json/package-license-object.json")),
 				),
 				Metadata: pkg.NpmPackage{
 					Name:        "npm",
@@ -65,8 +67,8 @@ func TestParsePackageJSON(t *testing.T) {
 				PURL:    "pkg:npm/npm@6.14.6",
 				Type:    pkg.NpmPkg,
 				Licenses: pkg.NewLicenseSet(
-					pkg.NewLicenseFromLocations("MIT", file.NewLocation("test-fixtures/pkg-json/package-license-objects.json")),
-					pkg.NewLicenseFromLocations("Apache-2.0", file.NewLocation("test-fixtures/pkg-json/package-license-objects.json")),
+					pkg.NewLicenseFromLocationsWithContext(ctx, "MIT", file.NewLocation("test-fixtures/pkg-json/package-license-objects.json")),
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Apache-2.0", file.NewLocation("test-fixtures/pkg-json/package-license-objects.json")),
 				),
 				Language: pkg.JavaScript,
 				Metadata: pkg.NpmPackage{
@@ -123,7 +125,7 @@ func TestParsePackageJSON(t *testing.T) {
 				PURL:    "pkg:npm/npm@6.14.6",
 				Type:    pkg.NpmPkg,
 				Licenses: pkg.NewLicenseSet(
-					pkg.NewLicenseFromLocations("Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-nested-author.json")),
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-nested-author.json")),
 				),
 				Language: pkg.JavaScript,
 				Metadata: pkg.NpmPackage{
@@ -144,13 +146,13 @@ func TestParsePackageJSON(t *testing.T) {
 				PURL:    "pkg:npm/function-bind@1.1.1",
 				Type:    pkg.NpmPkg,
 				Licenses: pkg.NewLicenseSet(
-					pkg.NewLicenseFromLocations("MIT", file.NewLocation("test-fixtures/pkg-json/package-repo-string.json")),
+					pkg.NewLicenseFromLocationsWithContext(ctx, "MIT", file.NewLocation("test-fixtures/pkg-json/package-repo-string.json")),
 				),
 				Language: pkg.JavaScript,
 				Metadata: pkg.NpmPackage{
 					Name:        "function-bind",
 					Version:     "1.1.1",
-					Author:      "Raynos <raynos2@gmail.com>",
+					Author:      "Raynos <raynos2@gmail.com>, Raynos, Jordan Harband (https://github.com/ljharb)",
 					Homepage:    "https://github.com/Raynos/function-bind",
 					URL:         "git://github.com/Raynos/function-bind.git",
 					Description: "Implementation of Function.prototype.bind",
@@ -165,7 +167,7 @@ func TestParsePackageJSON(t *testing.T) {
 				PURL:    "pkg:npm/npm@6.14.6",
 				Type:    pkg.NpmPkg,
 				Licenses: pkg.NewLicenseSet(
-					pkg.NewLicenseFromLocations("Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-private.json")),
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-private.json")),
 				),
 				Language: pkg.JavaScript,
 				Metadata: pkg.NpmPackage{
@@ -187,13 +189,139 @@ func TestParsePackageJSON(t *testing.T) {
 				PURL:    "pkg:npm/npm@6.14.6",
 				Type:    pkg.NpmPkg,
 				Licenses: pkg.NewLicenseSet(
-					pkg.NewLicenseFromLocations("Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-author-non-standard.json")),
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-author-non-standard.json")),
 				),
 				Language: pkg.JavaScript,
 				Metadata: pkg.NpmPackage{
 					Name:        "npm",
 					Version:     "6.14.6",
 					Author:      "npm Inc. (https://www.npmjs.com/)",
+					Homepage:    "https://docs.npmjs.com/",
+					URL:         "https://github.com/npm/cli",
+					Description: "a package manager for JavaScript",
+				},
+			},
+		},
+		{
+			Fixture: "test-fixtures/pkg-json/package-authors-array.json",
+			ExpectedPkg: pkg.Package{
+				Name:    "npm",
+				Version: "6.14.6",
+				PURL:    "pkg:npm/npm@6.14.6",
+				Type:    pkg.NpmPkg,
+				Licenses: pkg.NewLicenseSet(
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-authors-array.json")),
+				),
+				Language: pkg.JavaScript,
+				Metadata: pkg.NpmPackage{
+					Name:        "npm",
+					Version:     "6.14.6",
+					Author:      "Harry Potter <hp@hogwards.com> (http://youknowwho.com/), John Smith <j.smith@something.com> (http://awebsite.com/)",
+					Homepage:    "https://docs.npmjs.com/",
+					URL:         "https://github.com/npm/cli",
+					Description: "a package manager for JavaScript",
+				},
+			},
+		},
+		{
+			Fixture: "test-fixtures/pkg-json/package-authors-objects.json",
+			ExpectedPkg: pkg.Package{
+				Name:    "npm",
+				Version: "6.14.6",
+				PURL:    "pkg:npm/npm@6.14.6",
+				Type:    pkg.NpmPkg,
+				Licenses: pkg.NewLicenseSet(
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-authors-objects.json")),
+				),
+				Language: pkg.JavaScript,
+				Metadata: pkg.NpmPackage{
+					Name:        "npm",
+					Version:     "6.14.6",
+					Author:      "Harry Potter <hp@hogwards.com> (http://youknowwho.com/), John Smith <j.smith@something.com> (http://awebsite.com/)",
+					Homepage:    "https://docs.npmjs.com/",
+					URL:         "https://github.com/npm/cli",
+					Description: "a package manager for JavaScript",
+				},
+			},
+		},
+		{
+			Fixture: "test-fixtures/pkg-json/package-both-author-and-authors.json",
+			ExpectedPkg: pkg.Package{
+				Name:    "npm",
+				Version: "6.14.6",
+				PURL:    "pkg:npm/npm@6.14.6",
+				Type:    pkg.NpmPkg,
+				Licenses: pkg.NewLicenseSet(
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-both-author-and-authors.json")),
+				),
+				Language: pkg.JavaScript,
+				Metadata: pkg.NpmPackage{
+					Name:        "npm",
+					Version:     "6.14.6",
+					Author:      "Isaac Z. Schlueter <i@izs.me> (http://blog.izs.me), Harry Potter <hp@hogwards.com> (http://youknowwho.com/), John Smith <j.smith@something.com> (http://awebsite.com/)",
+					Homepage:    "https://docs.npmjs.com/",
+					URL:         "https://github.com/npm/cli",
+					Description: "a package manager for JavaScript",
+				},
+			},
+		},
+		{
+			Fixture: "test-fixtures/pkg-json/package-contributors.json",
+			ExpectedPkg: pkg.Package{
+				Name:    "npm",
+				Version: "6.14.6",
+				PURL:    "pkg:npm/npm@6.14.6",
+				Type:    pkg.NpmPkg,
+				Licenses: pkg.NewLicenseSet(
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-contributors.json")),
+				),
+				Language: pkg.JavaScript,
+				Metadata: pkg.NpmPackage{
+					Name:        "npm",
+					Version:     "6.14.6",
+					Author:      "Alice Contributor <alice@example.com>, Bob Helper <bob@example.com>",
+					Homepage:    "https://docs.npmjs.com/",
+					URL:         "https://github.com/npm/cli",
+					Description: "a package manager for JavaScript",
+				},
+			},
+		},
+		{
+			Fixture: "test-fixtures/pkg-json/package-maintainers.json",
+			ExpectedPkg: pkg.Package{
+				Name:    "npm",
+				Version: "6.14.6",
+				PURL:    "pkg:npm/npm@6.14.6",
+				Type:    pkg.NpmPkg,
+				Licenses: pkg.NewLicenseSet(
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-maintainers.json")),
+				),
+				Language: pkg.JavaScript,
+				Metadata: pkg.NpmPackage{
+					Name:        "npm",
+					Version:     "6.14.6",
+					Author:      "Charlie Maintainer <charlie@example.com>, Diana Keeper <diana@example.com>",
+					Homepage:    "https://docs.npmjs.com/",
+					URL:         "https://github.com/npm/cli",
+					Description: "a package manager for JavaScript",
+				},
+			},
+		},
+		{
+			Fixture: "test-fixtures/pkg-json/package-all-author-fields.json",
+			ExpectedPkg: pkg.Package{
+				Name:    "npm",
+				Version: "6.14.6",
+				PURL:    "pkg:npm/npm@6.14.6",
+				Type:    pkg.NpmPkg,
+				Licenses: pkg.NewLicenseSet(
+					pkg.NewLicenseFromLocationsWithContext(ctx, "Artistic-2.0", file.NewLocation("test-fixtures/pkg-json/package-all-author-fields.json")),
+				),
+				Language: pkg.JavaScript,
+				Metadata: pkg.NpmPackage{
+					Name:        "npm",
+					Version:     "6.14.6",
+					Author:      "Main Author <main@example.com>, Second Author <second@example.com>, Contrib One <contrib1@example.com>, Maintainer One <maintain1@example.com>",
 					Homepage:    "https://docs.npmjs.com/",
 					URL:         "https://github.com/npm/cli",
 					Description: "a package manager for JavaScript",

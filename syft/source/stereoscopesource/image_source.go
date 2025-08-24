@@ -51,6 +51,7 @@ func (s stereoscopeImageSource) Describe() source.Description {
 	a := s.config.Alias
 
 	name := a.Name
+	supplier := a.Supplier
 	nameIfUnset := func(n string) {
 		if name != "" {
 			return
@@ -90,6 +91,7 @@ func (s stereoscopeImageSource) Describe() source.Description {
 		ID:       string(s.id),
 		Name:     name,
 		Version:  version,
+		Supplier: supplier,
 		Metadata: s.metadata,
 	}
 }
@@ -103,6 +105,8 @@ func (s stereoscopeImageSource) FileResolver(scope source.Scope) (file.Resolver,
 		res, err = fileresolver.NewFromContainerImageSquash(s.image)
 	case source.AllLayersScope:
 		res, err = fileresolver.NewFromContainerImageAllLayers(s.image)
+	case source.DeepSquashedScope:
+		res, err = fileresolver.NewFromContainerImageDeepSquash(s.image)
 	default:
 		return nil, fmt.Errorf("bad image scope provided: %+v", scope)
 	}

@@ -145,6 +145,14 @@ func Test_SourceInfo(t *testing.T) {
 		},
 		{
 			input: pkg.Package{
+				Type: pkg.PhpPearPkg,
+			},
+			expected: []string{
+				"from PHP Pear manifest",
+			},
+		},
+		{
+			input: pkg.Package{
 				Type: pkg.DartPubPkg,
 			},
 			expected: []string{
@@ -181,6 +189,14 @@ func Test_SourceInfo(t *testing.T) {
 			},
 			expected: []string{
 				"from conan manifest",
+			},
+		},
+		{
+			input: pkg.Package{
+				Type: pkg.CondaPkg,
+			},
+			expected: []string{
+				"from conda metadata",
 			},
 		},
 		{
@@ -317,6 +333,14 @@ func Test_SourceInfo(t *testing.T) {
 			},
 			expected: []string{
 				"acquired package info from found wordpress plugin PHP source files",
+			},
+		},
+		{
+			input: pkg.Package{
+				Type: pkg.HomebrewPkg,
+			},
+			expected: []string{
+				"acquired package info from Homebrew formula",
 			},
 		},
 		{

@@ -110,7 +110,7 @@ func (o *scanOptions) PostLoad() error {
 }
 
 func (o *scanOptions) validateLegacyOptionsNotUsed() error {
-	if len(fangs.Flatten(o.Config.ConfigFile)) == 0 {
+	if len(fangs.Flatten(o.ConfigFile)) == 0 {
 		return nil
 	}
 
@@ -122,7 +122,7 @@ func (o *scanOptions) validateLegacyOptionsNotUsed() error {
 		File                            any     `yaml:"file" json:"file" mapstructure:"file"`
 	}
 
-	for _, f := range fangs.Flatten(o.Config.ConfigFile) {
+	for _, f := range fangs.Flatten(o.ConfigFile) {
 		by, err := os.ReadFile(f)
 		if err != nil {
 			return fmt.Errorf("unable to read config file during validations %q: %w", f, err)
@@ -218,8 +218,9 @@ func getSource(ctx context.Context, opts *options.Catalog, userInput string, sou
 	cfg := syft.DefaultGetSourceConfig().
 		WithRegistryOptions(opts.Registry.ToOptions()).
 		WithAlias(source.Alias{
-			Name:    opts.Source.Name,
-			Version: opts.Source.Version,
+			Name:     opts.Source.Name,
+			Version:  opts.Source.Version,
+			Supplier: opts.Source.Supplier,
 		}).
 		WithExcludeConfig(source.ExcludeConfig{
 			Paths: opts.Exclusions,

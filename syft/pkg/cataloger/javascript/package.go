@@ -1,6 +1,7 @@
 package javascript
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,13 +18,46 @@ import (
 	"github.com/anchore/syft/syft/pkg"
 )
 
-func newPackageJSONPackage(u packageJSON, indexLocation file.Location) pkg.Package {
+func newPackageJSONPackage(ctx context.Context, u packageJSON, indexLocation file.Location) pkg.Package {
 	licenseCandidates, err := u.licensesFromJSON()
 	if err != nil {
 		log.Debugf("unable to extract licenses from javascript package.json: %+v", err)
 	}
 
-	license := pkg.NewLicensesFromLocation(indexLocation, licenseCandidates...)
+	license := pkg.NewLicensesFromLocationWithContext(ctx, indexLocation, licenseCandidates...)
+	// Handle author, authors, contributors, and maintainers fields
+	var authorParts []string
+
+	// Add a single author field if it exists
+	if u.Author.Name != "" || u.Author.Email != "" || u.Author.URL != "" {
+		if authStr := u.Author.AuthorString(); authStr != "" {
+			authorParts = append(authorParts, authStr)
+		}
+	}
+
+	// Add authors field if it exists
+	if len(u.Authors) > 0 {
+		if authorsStr := u.Authors.String(); authorsStr != "" {
+			authorParts = append(authorParts, authorsStr)
+		}
+	}
+
+	// Add contributors field if it exists
+	if len(u.Contributors) > 0 {
+		if contributorsStr := u.Contributors.String(); contributorsStr != "" {
+			authorParts = append(authorParts, contributorsStr)
+		}
+	}
+
+	// Add maintainers field if it exists
+	if len(u.Maintainers) > 0 {
+		if maintainersStr := u.Maintainers.String(); maintainersStr != "" {
+			authorParts = append(authorParts, maintainersStr)
+		}
+	}
+
+	authorInfo := strings.Join(authorParts, ", ")
+
 	p := pkg.Package{
 		Name:      u.Name,
 		Version:   u.Version,
@@ -36,7 +70,7 @@ func newPackageJSONPackage(u packageJSON, indexLocation file.Location) pkg.Packa
 			Name:        u.Name,
 			Version:     u.Version,
 			Description: u.Description,
-			Author:      u.Author.AuthorString(),
+			Author:      authorInfo,
 			Homepage:    u.Homepage,
 			URL:         u.Repository.URL,
 			Private:     u.Private,
@@ -48,7 +82,7 @@ func newPackageJSONPackage(u packageJSON, indexLocation file.Location) pkg.Packa
 	return p
 }
 
-func newPackageLockV1Package(cfg CatalogerConfig, resolver file.Resolver, location file.Location, name string, u lockDependency) pkg.Package {
+func newPackageLockV1Package(ctx context.Context, cfg CatalogerConfig, resolver file.Resolver, location file.Location, name string, u lockDependency) pkg.Package {
 	version := u.Version
 
 	const aliasPrefixPackageLockV1 = "npm:"
@@ -69,7 +103,7 @@ func newPackageLockV1Package(cfg CatalogerConfig, resolver file.Resolver, locati
 	if cfg.SearchRemoteLicenses {
 		license, err := getLicenseFromNpmRegistry(cfg.NPMBaseURL, name, version)
 		if err == nil && license != "" {
-			licenses := pkg.NewLicensesFromValues(license)
+			licenses := pkg.NewLicensesFromValuesWithContext(ctx, license)
 			licenseSet = pkg.NewLicenseSet(licenses...)
 		}
 		if err != nil {
@@ -78,6 +112,7 @@ func newPackageLockV1Package(cfg CatalogerConfig, resolver file.Resolver, locati
 	}
 
 	return finalizeLockPkg(
+		ctx,
 		resolver,
 		location,
 		pkg.Package{
@@ -93,15 +128,15 @@ func newPackageLockV1Package(cfg CatalogerConfig, resolver file.Resolver, locati
 	)
 }
 
-func newPackageLockV2Package(cfg CatalogerConfig, resolver file.Resolver, location file.Location, name string, u lockPackage) pkg.Package {
+func newPackageLockV2Package(ctx context.Context, cfg CatalogerConfig, resolver file.Resolver, location file.Location, name string, u lockPackage) pkg.Package {
 	var licenseSet pkg.LicenseSet
 
 	if u.License != nil {
-		licenseSet = pkg.NewLicenseSet(pkg.NewLicensesFromLocation(location, u.License...)...)
+		licenseSet = pkg.NewLicenseSet(pkg.NewLicensesFromLocationWithContext(ctx, location, u.License...)...)
 	} else if cfg.SearchRemoteLicenses {
 		license, err := getLicenseFromNpmRegistry(cfg.NPMBaseURL, name, u.Version)
 		if err == nil && license != "" {
-			licenses := pkg.NewLicensesFromValues(license)
+			licenses := pkg.NewLicensesFromValuesWithContext(ctx, license)
 			licenseSet = pkg.NewLicenseSet(licenses...)
 		}
 		if err != nil {
@@ -110,6 +145,7 @@ func newPackageLockV2Package(cfg CatalogerConfig, resolver file.Resolver, locati
 	}
 
 	return finalizeLockPkg(
+		ctx,
 		resolver,
 		location,
 		pkg.Package{
@@ -125,8 +161,9 @@ func newPackageLockV2Package(cfg CatalogerConfig, resolver file.Resolver, locati
 	)
 }
 
-func newPnpmPackage(resolver file.Resolver, location file.Location, name, version string) pkg.Package {
+func newPnpmPackage(ctx context.Context, resolver file.Resolver, location file.Location, name, version string) pkg.Package {
 	return finalizeLockPkg(
+		ctx,
 		resolver,
 		location,
 		pkg.Package{
@@ -140,13 +177,13 @@ func newPnpmPackage(resolver file.Resolver, location file.Location, name, versio
 	)
 }
 
-func newYarnLockPackage(cfg CatalogerConfig, resolver file.Resolver, location file.Location, name, version string, resolved string, integrity string) pkg.Package {
+func newYarnLockPackage(ctx context.Context, cfg CatalogerConfig, resolver file.Resolver, location file.Location, name, version string, resolved string, integrity string) pkg.Package {
 	var licenseSet pkg.LicenseSet
 
 	if cfg.SearchRemoteLicenses {
 		license, err := getLicenseFromNpmRegistry(cfg.NPMBaseURL, name, version)
 		if err == nil && license != "" {
-			licenses := pkg.NewLicensesFromValues(license)
+			licenses := pkg.NewLicensesFromValuesWithContext(ctx, license)
 			licenseSet = pkg.NewLicenseSet(licenses...)
 		}
 		if err != nil {
@@ -154,6 +191,7 @@ func newYarnLockPackage(cfg CatalogerConfig, resolver file.Resolver, location fi
 		}
 	}
 	return finalizeLockPkg(
+		ctx,
 		resolver,
 		location,
 		pkg.Package{
@@ -226,9 +264,9 @@ func getLicenseFromNpmRegistry(baseURL, packageName, version string) (string, er
 	return license.License, nil
 }
 
-func finalizeLockPkg(resolver file.Resolver, location file.Location, p pkg.Package) pkg.Package {
+func finalizeLockPkg(ctx context.Context, resolver file.Resolver, location file.Location, p pkg.Package) pkg.Package {
 	licenseCandidate := addLicenses(p.Name, resolver, location)
-	p.Licenses.Add(pkg.NewLicensesFromLocation(location, licenseCandidate...)...)
+	p.Licenses.Add(pkg.NewLicensesFromLocationWithContext(ctx, location, licenseCandidate...)...)
 	p.SetID()
 	return p
 }

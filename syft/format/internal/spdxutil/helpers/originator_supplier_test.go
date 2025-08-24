@@ -18,7 +18,9 @@ func Test_OriginatorSupplier(t *testing.T) {
 		pkg.ConanV2LockEntry{}, // the field Username might be the username of either the package originator or the supplier (unclear currently)
 		pkg.ConanfileEntry{},
 		pkg.ConaninfoEntry{},
+		pkg.CondaMetaPackage{},
 		pkg.DartPubspecLockEntry{},
+		pkg.DartPubspec{},
 		pkg.DotnetDepsEntry{},
 		pkg.DotnetPackagesLockEntry{},
 		pkg.ELFBinaryPackageNoteJSONPayload{},
@@ -26,6 +28,7 @@ func Test_OriginatorSupplier(t *testing.T) {
 		pkg.ErlangRebarLockEntry{},
 		pkg.GolangBinaryBuildinfoEntry{},
 		pkg.GolangModuleEntry{},
+		pkg.HomebrewFormula{},
 		pkg.HackageStackYamlLockEntry{},
 		pkg.HackageStackYamlEntry{},
 		pkg.LinuxKernel{},
@@ -34,17 +37,20 @@ func Test_OriginatorSupplier(t *testing.T) {
 		pkg.NixStoreEntry{},
 		pkg.NpmPackageLockEntry{},
 		pkg.PhpComposerInstalledEntry{},
+		pkg.PhpPearEntry{},
 		pkg.PhpPeclEntry{},
 		pkg.PortageEntry{},
 		pkg.PythonPipfileLockEntry{},
 		pkg.PythonRequirementsEntry{},
 		pkg.PythonPoetryLockEntry{},
+		pkg.PythonUvLockEntry{},
 		pkg.RustBinaryAuditEntry{},
 		pkg.RustCargoLockEntry{},
 		pkg.SwiftPackageManagerResolvedEntry{},
 		pkg.SwiplPackEntry{},
 		pkg.OpamPackage{},
 		pkg.YarnLockEntry{},
+		pkg.TerraformLockProviderEntry{},
 	)
 	tests := []struct {
 		name       string
@@ -109,9 +115,34 @@ func Test_OriginatorSupplier(t *testing.T) {
 			supplier:   "Organization: Microsoft Corporation",
 		},
 		{
-			name: "from dpkg",
+			name: "from PE binary",
+			input: pkg.Package{
+				Metadata: pkg.PEBinary{
+					VersionResources: pkg.KeyValues{
+						{
+							Key:   "CompanyName",
+							Value: "Microsoft Corporation",
+						},
+					},
+				},
+			},
+			originator: "Organization: Microsoft Corporation",
+			supplier:   "Organization: Microsoft Corporation",
+		},
+		{
+			name: "from dpkg DB",
 			input: pkg.Package{
 				Metadata: pkg.DpkgDBEntry{
+					Maintainer: "auth",
+				},
+			},
+			originator: "Person: auth",
+			supplier:   "Person: auth",
+		},
+		{
+			name: "from dpkg archive",
+			input: pkg.Package{
+				Metadata: pkg.DpkgArchiveEntry{
 					Maintainer: "auth",
 				},
 			},
@@ -374,20 +405,24 @@ func Test_OriginatorSupplier(t *testing.T) {
 			supplier:   "Person: me (me@auth.com)",
 		},
 		{
-			name: "from ocaml opam",
+			name: "from github actions workflow/action",
 			input: pkg.Package{
-				Metadata: pkg.OpamPackage{},
+				Metadata: pkg.GitHubActionsUseStatement{
+					Value: "actions/checkout@v4",
+				},
 			},
-			originator: "",
-			supplier:   "",
+			originator: "Organization: GitHub",
+			supplier:   "Organization: GitHub",
 		},
 		{
-			name: "from terraform lock",
+			name: "from github actions workflow/action",
 			input: pkg.Package{
-				Metadata: pkg.TerraformLockProviderEntry{},
+				Metadata: pkg.GitHubActionsUseStatement{
+					Value: "google/something@v6",
+				},
 			},
-			originator: "",
-			supplier:   "",
+			originator: "Organization: google",
+			supplier:   "Organization: google",
 		},
 	}
 	for _, test := range tests {

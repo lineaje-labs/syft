@@ -20,6 +20,7 @@ import (
 	"github.com/anchore/syft/syft/file"
 	"github.com/anchore/syft/syft/pkg"
 	"github.com/anchore/syft/syft/pkg/cataloger/binary/test-fixtures/manager/testutil"
+	"github.com/anchore/syft/syft/pkg/cataloger/internal/binutils"
 	"github.com/anchore/syft/syft/source"
 	"github.com/anchore/syft/syft/source/directorysource"
 	"github.com/anchore/syft/syft/source/stereoscopesource"
@@ -246,45 +247,6 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 				PURL:      "pkg:generic/httpd@2.4.54",
 				Locations: locations("httpd"),
 				Metadata:  metadata("httpd-binary"),
-			},
-		},
-		{
-			// TODO: find original binary...
-			// note: cannot find the original binary, using a custom snippet based on the original snippet in the repo
-			logicalFixture: "php-cli/8.2.1/linux-amd64",
-			expected: pkg.Package{
-				Name:      "php-cli",
-				Version:   "8.2.1",
-				Type:      "binary",
-				PURL:      "pkg:generic/php-cli@8.2.1",
-				Locations: locations("php"),
-				Metadata:  metadata("php-cli-binary"),
-			},
-		},
-		{
-			// TODO: find original binary...
-			// note: cannot find the original binary, using a custom snippet based on the original snippet in the repo
-			logicalFixture: "php-fpm/8.2.1/linux-amd64",
-			expected: pkg.Package{
-				Name:      "php-fpm",
-				Version:   "8.2.1",
-				Type:      "binary",
-				PURL:      "pkg:generic/php-fpm@8.2.1",
-				Locations: locations("php-fpm"),
-				Metadata:  metadata("php-fpm-binary"),
-			},
-		},
-		{
-			// TODO: find original binary...
-			// note: cannot find the original binary, using a custom snippet based on the original snippet in the repo
-			logicalFixture: "php-apache/8.2.1/linux-amd64",
-			expected: pkg.Package{
-				Name:      "libphp",
-				Version:   "8.2.1",
-				Type:      "binary",
-				PURL:      "pkg:generic/php@8.2.1",
-				Locations: locations("libphp.so"),
-				Metadata:  metadata("php-apache-binary"),
 			},
 		},
 		{
@@ -700,6 +662,17 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 			},
 		},
 		{
+			// note: this is for compatability with dev version of golang tip image, which resolves the issue #3681
+			logicalFixture: "go-version-hint/1.25/any",
+			expected: pkg.Package{
+				Name:      "go",
+				Version:   "1.25-d524e1e",
+				PURL:      "pkg:generic/go@1.25-d524e1e",
+				Locations: locations("VERSION.cache"),
+				Metadata:  metadata("go-binary-hint"),
+			},
+		},
+		{
 			// note: this is testing BUSYBOX which is typically through a link to "[" (in this case a symlink but in
 			// practice this is often a hard link).
 			logicalFixture: `busybox/1.36.1/linux-amd64`,
@@ -724,21 +697,21 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 		{
 			logicalFixture: "java-jre-openjdk/1.8.0_352-b08/linux-amd64",
 			expected: pkg.Package{
-				Name:      "java/jre",
+				Name:      "openjdk",
 				Version:   "1.8.0_352-b08",
 				Type:      "binary",
-				PURL:      "pkg:generic/java/jre@1.8.0_352-b08",
+				PURL:      "pkg:generic/oracle/openjdk@1.8.0_352-b08",
 				Locations: locations("java"),
-				Metadata:  metadata("java-binary-openjdk", "java"),
+				Metadata:  metadata("java-binary-openjdk-with-update", "java"),
 			},
 		},
 		{
 			logicalFixture: "java-jre-openjdk/11.0.17/linux-amd64",
 			expected: pkg.Package{
-				Name:      "java/jre",
+				Name:      "openjdk",
 				Version:   "11.0.17+8-LTS",
 				Type:      "binary",
-				PURL:      "pkg:generic/java/jre@11.0.17%2B8-LTS",
+				PURL:      "pkg:generic/oracle/openjdk@11.0.17%2B8-LTS",
 				Locations: locations("java"),
 				Metadata:  metadata("java-binary-openjdk", "java"),
 			},
@@ -746,10 +719,10 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 		{
 			logicalFixture: "java-jre-openjdk-eclipse/11.0.22/linux-amd64",
 			expected: pkg.Package{
-				Name:      "java/jre",
+				Name:      "openjdk",
 				Version:   "11.0.22+7",
 				Type:      "binary",
-				PURL:      "pkg:generic/java/jre@11.0.22%2B7",
+				PURL:      "pkg:generic/oracle/openjdk@11.0.22%2B7",
 				Locations: locations("java"),
 				Metadata:  metadata("java-binary-openjdk", "java"),
 			},
@@ -757,10 +730,10 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 		{
 			logicalFixture: "java-jre-openjdk-arm64-eclipse/11.0.22/linux-arm64",
 			expected: pkg.Package{
-				Name:      "java/jre",
+				Name:      "openjdk",
 				Version:   "11.0.22+7",
 				Type:      "binary",
-				PURL:      "pkg:generic/java/jre@11.0.22%2B7",
+				PURL:      "pkg:generic/oracle/openjdk@11.0.22%2B7",
 				Locations: locations("java"),
 				Metadata:  metadata("java-binary-openjdk", "java"),
 			},
@@ -768,10 +741,10 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 		{
 			logicalFixture: "java-graal-openjdk/17.0.3+7-jvmci-22.1-b06/linux-amd64",
 			expected: pkg.Package{
-				Name:      "java/graalvm",
+				Name:      "graalvm",
 				Version:   "17.0.3+7-jvmci-22.1-b06",
 				Type:      "binary",
-				PURL:      "pkg:generic/java/graalvm@17.0.3%2B7-jvmci-22.1-b06",
+				PURL:      "pkg:generic/oracle/graalvm@17.0.3%2B7-jvmci-22.1-b06",
 				Locations: locations("java"),
 				Metadata:  metadata("java-binary-graalvm", "java"),
 			},
@@ -781,10 +754,10 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 			// note: cannot find the original binary, using a custom snippet based on the original snippet in the repo
 			logicalFixture: "java-jre-oracle/19.0.1/linux-amd64",
 			expected: pkg.Package{
-				Name:      "java/jre",
+				Name:      "jre",
 				Version:   "19.0.1+10-21",
 				Type:      "binary",
-				PURL:      "pkg:generic/java/jre@19.0.1%2B10-21",
+				PURL:      "pkg:generic/oracle/jre@19.0.1%2B10-21",
 				Locations: locations("java"),
 				Metadata:  metadata("java-binary-oracle", "java"),
 			},
@@ -794,34 +767,23 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 			// note: cannot find the original binary, using a custom snippet based on the original snippet in the repo
 			logicalFixture: "java-jre-oracle/19.0.1/darwin",
 			expected: pkg.Package{
-				Name:      "java/jre",
+				Name:      "jre",
 				Version:   "19.0.1+10-21",
 				Type:      "binary",
-				PURL:      "pkg:generic/java/jre@19.0.1%2B10-21",
+				PURL:      "pkg:generic/oracle/jre@19.0.1%2B10-21",
 				Locations: locations("java"),
 				Metadata:  metadata("java-binary-oracle", "java"),
 			},
 		},
 		{
-			logicalFixture: "java-jre-ibm/1.8.0_391/linux-amd64",
-			expected: pkg.Package{
-				Name:      "java/jre",
-				Version:   "1.8.0-foreman_2023_10_12_13_27-b00",
-				Type:      "binary",
-				PURL:      "pkg:generic/java/jre@1.8.0-foreman_2023_10_12_13_27-b00",
-				Locations: locations("java"),
-				Metadata:  metadata("java-binary-ibm", "java"),
-			},
-		},
-		{
 			logicalFixture: "java-jdk-openjdk/21.0.2+13-LTS/linux-amd64",
 			expected: pkg.Package{
-				Name:      "java/jdk",
+				Name:      "openjdk",
 				Version:   "21.0.2+13-LTS",
 				Type:      "binary",
-				PURL:      "pkg:generic/java/jdk@21.0.2%2B13-LTS",
+				PURL:      "pkg:generic/oracle/openjdk@21.0.2%2B13-LTS",
 				Locations: locations("jdb"),
-				Metadata:  metadata("java-binary-jdk", "java"),
+				Metadata:  metadata("java-binary-openjdk-fallthrough", "jdb"),
 			},
 		},
 		{
@@ -1013,6 +975,28 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 			},
 		},
 		{
+			logicalFixture: "vault/1.20.2/linux-amd64",
+			expected: pkg.Package{
+				Name:      "github.com/hashicorp/vault",
+				Version:   "1.20.2",
+				Type:      "golang",
+				PURL:      "pkg:golang/github.com/hashicorp/vault@1.20.2",
+				Locations: locations("vault"),
+				Metadata:  metadata("hashicorp-vault-binary"),
+			},
+		},
+		{
+			logicalFixture: "vault/1.19.4/linux-arm64",
+			expected: pkg.Package{
+				Name:      "github.com/hashicorp/vault",
+				Version:   "1.19.4",
+				Type:      "golang",
+				PURL:      "pkg:golang/github.com/hashicorp/vault@1.19.4",
+				Locations: locations("vault"),
+				Metadata:  metadata("hashicorp-vault-binary"),
+			},
+		},
+		{
 			logicalFixture: "erlang/25.3.2.6/linux-amd64",
 			expected: pkg.Package{
 				Name:      "erlang",
@@ -1052,6 +1036,17 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 				Version:   "27.0",
 				Type:      "binary",
 				PURL:      "pkg:generic/erlang@27.0",
+				Locations: locations("beam.smp"),
+				Metadata:  metadata("erlang-alpine-binary"),
+			},
+		},
+		{
+			logicalFixture: "erlang/26.1.2/linux-arm64",
+			expected: pkg.Package{
+				Name:      "erlang",
+				Version:   "26.1.2",
+				Type:      "binary",
+				PURL:      "pkg:generic/erlang@26.1.2",
 				Locations: locations("beam.smp"),
 				Metadata:  metadata("erlang-alpine-binary"),
 			},
@@ -1189,6 +1184,17 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 			},
 		},
 		{
+			logicalFixture: "openssl/1.1.1zb/linux-arm64",
+			expected: pkg.Package{
+				Name:      "openssl",
+				Version:   "1.1.1zb",
+				Type:      "binary",
+				PURL:      "pkg:generic/openssl@1.1.1zb",
+				Locations: locations("openssl"),
+				Metadata:  metadata("openssl-binary"),
+			},
+		},
+		{
 			logicalFixture: "gcc/12.3.0/linux-amd64",
 			expected: pkg.Package{
 				Name:      "gcc",
@@ -1228,6 +1234,17 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 				Version:   "1.7.0",
 				Type:      "binary",
 				PURL:      "pkg:github/fluent/fluent-bit@1.7.0",
+				Locations: locations("fluent-bit"),
+				Metadata:  metadata("fluent-bit-binary"),
+			},
+		},
+		{
+			logicalFixture: "fluent-bit/1.3.10/linux-arm",
+			expected: pkg.Package{
+				Name:      "fluent-bit",
+				Version:   "1.3.10",
+				Type:      "binary",
+				PURL:      "pkg:github/fluent/fluent-bit@1.3.10",
 				Locations: locations("fluent-bit"),
 				Metadata:  metadata("fluent-bit-binary"),
 			},
@@ -1329,6 +1346,28 @@ func Test_Cataloger_PositiveCases(t *testing.T) {
 				PURL:      "pkg:generic/jq@1.7.1",
 				Locations: locations("jq"),
 				Metadata:  metadata("jq-binary"),
+			},
+		},
+		{
+			logicalFixture: "chrome/126.0.6478.182/linux-amd64",
+			expected: pkg.Package{
+				Name:      "chrome",
+				Version:   "126.0.6478.182",
+				Type:      "binary",
+				PURL:      "pkg:generic/chrome@126.0.6478.182",
+				Locations: locations("chrome"),
+				Metadata:  metadata("chrome-binary"),
+			},
+		},
+		{
+			logicalFixture: "chrome/127.0.6533.119/linux-amd64",
+			expected: pkg.Package{
+				Name:      "chrome",
+				Version:   "127.0.6533.119",
+				Type:      "binary",
+				PURL:      "pkg:generic/chrome@127.0.6533.119",
+				Locations: locations("chrome"),
+				Metadata:  metadata("chrome-binary"),
 			},
 		},
 	}
@@ -1442,11 +1481,13 @@ func Test_Cataloger_CustomClassifiers(t *testing.T) {
 		Locations: locations("foo"),
 		Metadata:  metadata("foo-binary"),
 	}
-	fooClassifier := Classifier{
+	fooClassifier := binutils.Classifier{
 		Class:    "foo-binary",
 		FileGlob: "**/foo",
-		EvidenceMatcher: FileContentsVersionMatcher(
-			`(?m)foobar\s(?P<version>[0-9]+\.[0-9]+\.[0-9]+)`),
+		EvidenceMatcher: binutils.FileContentsVersionMatcher(
+			catalogerName,
+			`(?m)foobar\s(?P<version>[0-9]+\.[0-9]+\.[0-9]+)`,
+		),
 		Package: "foo",
 		PURL:    mustPURL("pkg:generic/foo@version"),
 		CPEs:    singleCPE("cpe:2.3:a:foo:foo:*:*:*:*:*:*:*:*"),
@@ -1461,7 +1502,7 @@ func Test_Cataloger_CustomClassifiers(t *testing.T) {
 		{
 			name: "empty-negative",
 			config: ClassifierCatalogerConfig{
-				Classifiers: []Classifier{},
+				Classifiers: []binutils.Classifier{},
 			},
 			fixtureDir: "test-fixtures/custom/go-1.14",
 			expected:   nil,
@@ -1477,7 +1518,7 @@ func Test_Cataloger_CustomClassifiers(t *testing.T) {
 		{
 			name: "nodefault-negative",
 			config: ClassifierCatalogerConfig{
-				Classifiers: []Classifier{fooClassifier},
+				Classifiers: []binutils.Classifier{fooClassifier},
 			},
 			fixtureDir: "test-fixtures/custom/go-1.14",
 			expected:   nil,
@@ -1486,7 +1527,7 @@ func Test_Cataloger_CustomClassifiers(t *testing.T) {
 			name: "default-extended-positive",
 			config: ClassifierCatalogerConfig{
 				Classifiers: append(
-					append([]Classifier{}, defaultClassifers...),
+					append([]binutils.Classifier{}, defaultClassifers...),
 					fooClassifier,
 				),
 			},
@@ -1498,11 +1539,11 @@ func Test_Cataloger_CustomClassifiers(t *testing.T) {
 			config: ClassifierCatalogerConfig{
 
 				Classifiers: append(
-					append([]Classifier{}, defaultClassifers...),
-					Classifier{
+					append([]binutils.Classifier{}, defaultClassifers...),
+					binutils.Classifier{
 						Class:           "foo-binary",
 						FileGlob:        "**/foo",
-						EvidenceMatcher: FileContentsVersionMatcher(`(?m)not there`),
+						EvidenceMatcher: binutils.FileContentsVersionMatcher(catalogerName, `(?m)not there`),
 						Package:         "foo",
 						PURL:            mustPURL("pkg:generic/foo@version"),
 						CPEs:            singleCPE("cpe:2.3:a:foo:foo:*:*:*:*:*:*:*:*"),
@@ -1516,7 +1557,7 @@ func Test_Cataloger_CustomClassifiers(t *testing.T) {
 			name: "default-cutsom-positive",
 			config: ClassifierCatalogerConfig{
 				Classifiers: append(
-					append([]Classifier{}, defaultClassifers...),
+					append([]binutils.Classifier{}, defaultClassifers...),
 					fooClassifier,
 				),
 			},
@@ -1716,11 +1757,11 @@ func TestCatalogerConfig_MarshalJSON(t *testing.T) {
 		{
 			name: "only show names of classes",
 			cfg: ClassifierCatalogerConfig{
-				Classifiers: []Classifier{
+				Classifiers: []binutils.Classifier{
 					{
 						Class:           "class",
 						FileGlob:        "glob",
-						EvidenceMatcher: FileContentsVersionMatcher(".thing"),
+						EvidenceMatcher: binutils.FileContentsVersionMatcher(catalogerName, ".thing"),
 						Package:         "pkg",
 						PURL: packageurl.PackageURL{
 							Type:       "type",

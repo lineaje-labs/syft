@@ -9,7 +9,7 @@ import (
 const (
 	// this is the number of packages that should be found in the image-pkg-coverage fixture image
 	// when analyzed with the squashed scope.
-	coverageImageSquashedPackageCount = 30
+	coverageImageSquashedPackageCount = 43
 )
 
 func TestPackagesCmdFlags(t *testing.T) {
@@ -68,6 +68,21 @@ func TestPackagesCmdFlags(t *testing.T) {
 			assertions: []traitAssertion{
 				assertTableReport,
 				assertFileExists(tmp + ".tmp/multiple-output-flag-test.json"),
+				assertSuccessfulReturnCode,
+			},
+		},
+		{
+			name: "source flags override bom metadata",
+			args: []string{
+				"scan",
+				"--source-name", "custom-name",
+				"--source-version", "custom-version",
+				"--source-supplier", "custom-supplier",
+				"-o", "json", coverageImage},
+			assertions: []traitAssertion{
+				assertInOutput("custom-name"),
+				assertInOutput("custom-version"),
+				assertInOutput("custom-supplier"),
 				assertSuccessfulReturnCode,
 			},
 		},
@@ -354,7 +369,17 @@ func TestPackagesCmdFlags(t *testing.T) {
 			args: []string{"scan", "-vvv", "-o", "json", coverageImage},
 			assertions: []traitAssertion{
 				// the application config in the log matches that of what we expect to have been configured.
-				assertInOutput(`parallelism: 1`),
+				assertInOutput(`parallelism: 0`),
+				assertPackageCount(coverageImageSquashedPackageCount),
+				assertSuccessfulReturnCode,
+			},
+		},
+		{
+			name: "parallelism-flag",
+			args: []string{"scan", "-vvv", "--parallelism", "2", "-o", "json", coverageImage},
+			assertions: []traitAssertion{
+				// the application config in the log matches that of what we expect to have been configured.
+				assertInOutput(`parallelism: 2`),
 				assertPackageCount(coverageImageSquashedPackageCount),
 				assertSuccessfulReturnCode,
 			},
