@@ -25,7 +25,7 @@ func TestParseConfigJSON(t *testing.T) {
 		{
 			name: "valid model config with _name_or_path",
 			configContent: `{
-				"name_or_path": "microsoft/DialoGPT-medium",
+				"_name_or_path": "microsoft/DialoGPT-medium",
 				"model_type": "gpt2",
 				"architectures": ["GPT2LMHeadModel"]
 			}`,
@@ -111,9 +111,9 @@ func TestIsModelConfig(t *testing.T) {
 		expected bool
 	}{
 		{
-			name: "has name_or_path",
+			name: "has _name_or_path",
 			config: map[string]interface{}{
-				"name_or_path": "some/model",
+				"_name_or_path": "some/model",
 			},
 			expected: true,
 		},
