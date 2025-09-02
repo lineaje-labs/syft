@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -21,6 +20,8 @@ import (
 const (
 	HuggingFace = "huggingface"
 	CustomModel = "custommodel"
+
+	DefaultHuggingFaceVersion = "main" // HuggingFace models have main branch as default
 )
 
 // parseConfigJSON parses a config.json file and returns discovered model artifacts
@@ -46,7 +47,7 @@ func parseConfigJSON(_ context.Context, resolver file.Resolver, env *generic.Env
 	}
 
 	// Extract _name_or_path if present
-	if nameOrPath, ok := config["name_or_path"].(string); ok {
+	if nameOrPath, ok := config["_name_or_path"].(string); ok {
 		modelInfo.Name = nameOrPath
 	}
 
@@ -67,7 +68,7 @@ func parseConfigJSON(_ context.Context, resolver file.Resolver, env *generic.Env
 	}
 
 	// Check for Git repository and extract remote URL
-	gitRemoteURL := getGitRemoteURL(repoDirectory)
+	gitRemoteURL := getGitRemoteURL(resolver, repoDirectory)
 	var modelName, version, purl string
 
 	if gitRemoteURL != "" && strings.Contains(gitRemoteURL, "huggingface.co") {
@@ -107,7 +108,7 @@ func parseConfigJSON(_ context.Context, resolver file.Resolver, env *generic.Env
 	baseModels := parseBaseModelsFromReadme(resolver, repoDirectory)
 	for _, baseModel := range baseModels {
 		// As basemodel extraction is done by Model card specification provided by hugging face, the basemodel's artifactory is set as huggingface
-		baseModelPkg := createBaseModelPackage(HuggingFace, baseModel, "", reader.Location)
+		baseModelPkg := createBaseModelPackage(HuggingFace, baseModel, DefaultHuggingFaceVersion, reader.Location)
 		packages = append(packages, baseModelPkg)
 		relationships = append(relationships, artifact.Relationship{
 			From: mainPkg,
@@ -123,7 +124,7 @@ func parseConfigJSON(_ context.Context, resolver file.Resolver, env *generic.Env
 // config json specifications: https://huggingface.co/docs/transformers/main_classes/configuration
 func isModelConfig(config map[string]interface{}) bool {
 	// Check for common model config indicators
-	if _, hasNameOrPath := config["name_or_path"]; hasNameOrPath {
+	if _, hasNameOrPath := config["_name_or_path"]; hasNameOrPath {
 		return true
 	}
 	if _, hasModelType := config["model_type"]; hasModelType {
@@ -136,20 +137,31 @@ func isModelConfig(config map[string]interface{}) bool {
 }
 
 // getGitRemoteURL checks if there's a .git directory and extracts the remote URL
-func getGitRemoteURL(repoDirectory string) string {
-	gitDir := filepath.Join(repoDirectory, ".git")
-	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
+func getGitRemoteURL(resolver file.Resolver, repoDirectory string) string {
+	if resolver == nil {
+		return ""
+	}
+	gitConfigFile := filepath.Join(repoDirectory, ".git", "config")
+	gitFiles, err := resolver.FilesByPath(gitConfigFile)
+	if err != nil || len(gitFiles) == 0 {
 		return ""
 	}
 
 	// Try to read the remote URL from .git/config
-	configPath := filepath.Join(gitDir, "config")
-	if configContent, err := os.ReadFile(configPath); err == nil {
-		// Look for remote "origin" URL
-		remotePattern := regexp.MustCompile(`\[remote "origin"\][\s\S]*?url = (.+)`)
-		if matches := remotePattern.FindSubmatch(configContent); len(matches) > 1 {
-			return strings.TrimSpace(string(matches[1]))
-		}
+	gitConfigReader, err := resolver.FileContentsByLocation(gitFiles[0])
+	if err != nil {
+		return ""
+	}
+	defer gitConfigReader.Close()
+
+	fileContent, err := io.ReadAll(gitConfigReader)
+	if err != nil {
+		return ""
+	}
+	// Look for remote "origin" URL
+	remotePattern := regexp.MustCompile(`\[remote "origin"\][\s\S]*?url = (.+)`)
+	if matches := remotePattern.FindSubmatch(fileContent); len(matches) > 1 {
+		return strings.TrimSpace(string(matches[1]))
 	}
 
 	return ""
@@ -172,7 +184,7 @@ func parseHuggingFaceURL(gitURL string) (modelname string, branch string) {
 		// 2. meta-llama/Meta-Llama-3-8B-Instruct
 
 		// Thus, the version of the model is hardcoded to main, as it refers to latest commit in huggingface repository.
-		return modelPath, "main"
+		return modelPath, DefaultHuggingFaceVersion
 	}
 
 	return "unknown", "unknown"
@@ -270,7 +282,7 @@ func getAIModelPurl(modelartifactory string, modelName string, version string) s
 
 	if modelartifactory == HuggingFace && version == "" {
 		// Huggingface models have default branch as "main"
-		version = "main"
+		version = DefaultHuggingFaceVersion
 	}
 	return fmt.Sprintf("pkg:aimodel/%s/%s@%s", modelartifactory, modelName, version)
 }
