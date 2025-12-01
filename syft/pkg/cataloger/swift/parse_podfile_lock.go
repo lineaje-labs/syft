@@ -38,34 +38,38 @@ func parsePodfileLock(_ context.Context, _ file.Resolver, _ *generic.Environment
 		return nil, nil, fmt.Errorf("unable to parse yaml: %w", err)
 	}
 
-	var prevPodName string
-	// Map of Pod name vs list of Pod subspec names
-	// A pod name is a subspec, if it has a prefix of "previous-pod-name/"
-	// For example, "libwebp" is the parent of "libwebp/demux"
+	// Map of Pod name vs list of its dependencies
+	// A pod name is a subspec, if it has "/" in it, and can be part of this list
 	podNameVsDependencies := make(map[string][]string)
 	for _, podInterface := range podfile.Pods {
-		var podBlob string
+		var podBlob []string
 		switch v := podInterface.(type) {
 		case map[string]interface{}:
-			for k := range v {
-				podBlob = k
+			// This is for the following entry,
+			// - FirebaseCore (10.7.0):
+			//    - FirebaseCoreInternal (~> 10.0)
+			//    - GoogleUtilities/Environment (~> 7.8)
+			//    - GoogleUtilities/Logger (~> 7.8)
+			for key, value := range v {
+				podBlob = append(podBlob, key) // The parent pod
+				subItems := value.([]interface{})
+				for _, sub := range subItems {
+					podBlob = append(podBlob, sub.(string))
+				}
 			}
 		case string:
-			podBlob = v
+			podBlob = append(podBlob, v) // pod without any dependencies
 		default:
 			return nil, nil, fmt.Errorf("malformed podfile.lock")
 		}
-		splits := strings.Split(podBlob, " ")
-		podName := splits[0]
-		// If the previous pod name is a prefix of the current pod name, then the current pod name is its dependency
-		if strings.HasPrefix(podName, prevPodName + "/") {
-			if deps, found := podNameVsDependencies[prevPodName]; found {
-				podNameVsDependencies[prevPodName] = append(deps, podName)
-			} else {
-				podNameVsDependencies[prevPodName] = []string{podName}
+		// Each entry in podBlob is of the format - "FirebaseCore (10.7.0)"
+		podName := strings.Split(podBlob[0], " ")[0]
+		if len(podBlob) > 1 { // Indicates it has dependencies
+			var dependencies []string
+			for i := 1; i < len(podBlob); i++ {
+				dependencies = append(dependencies, strings.Split(podBlob[i], " ")[0])  // Save only the name in the relationship
 			}
-		} else {
-			prevPodName = podName
+			podNameVsDependencies[podName] = dependencies
 		}
 	}
 	var pkgs []pkg.Package
