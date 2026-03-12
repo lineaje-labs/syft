@@ -87,6 +87,7 @@ func TestPkgCoverageImage(t *testing.T) {
 	definedPkgs.Remove(string(pkg.TerraformPkg))
 	definedPkgs.Remove(string(pkg.PhpPeclPkg)) // we have coverage for pear instead
 	definedPkgs.Remove(string(pkg.CondaPkg))
+	definedPkgs.Remove(string(pkg.ModelPkg))
 
 	var cases []testCase
 	cases = append(cases, commonTestCases...)
@@ -124,7 +125,7 @@ func TestPkgCoverageImage(t *testing.T) {
 }
 
 func TestPkgCoverageDirectory(t *testing.T) {
-	sbom, _ := catalogDirectory(t, "test-fixtures/image-pkg-coverage")
+	sbom, _ := catalogDirectory(t, "testdata/image-pkg-coverage")
 
 	observedLanguages := strset.New()
 	definedLanguages := strset.New()
@@ -161,6 +162,7 @@ func TestPkgCoverageDirectory(t *testing.T) {
 	definedPkgs.Remove(string(pkg.UnknownPkg))
 	definedPkgs.Remove(string(pkg.CondaPkg))
 	definedPkgs.Remove(string(pkg.PhpPeclPkg)) // this is covered as pear packages
+	definedPkgs.Remove(string(pkg.ModelPkg))
 
 	// for directory scans we should not expect to see any of the following package types
 	definedPkgs.Remove(string(pkg.KbPkg))
@@ -259,7 +261,7 @@ func TestPkgCoverageImage_HasEvidence(t *testing.T) {
 }
 
 func TestPkgCoverageDirectory_HasEvidence(t *testing.T) {
-	sbom, _ := catalogDirectory(t, "test-fixtures/image-pkg-coverage")
+	sbom, _ := catalogDirectory(t, "testdata/image-pkg-coverage")
 
 	var cases []testCase
 	cases = append(cases, commonTestCases...)

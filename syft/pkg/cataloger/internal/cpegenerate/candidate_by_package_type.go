@@ -198,6 +198,11 @@ var defaultCandidateAdditions = buildCandidateLookup(
 		// NPM packages
 		{
 			pkg.NpmPkg,
+			candidateKey{PkgName: "next"},
+			candidateAddition{AdditionalProducts: []string{"next.js"}, AdditionalVendors: []string{"vercel"}},
+		},
+		{
+			pkg.NpmPkg,
 			candidateKey{PkgName: "hapi"},
 			candidateAddition{AdditionalProducts: []string{"hapi_server_framework"}},
 		},
@@ -404,6 +409,11 @@ var defaultCandidateAdditions = buildCandidateLookup(
 			pkg.ApkPkg,
 			candidateKey{PkgName: "git"},
 			candidateAddition{AdditionalVendors: []string{"git-scm"}},
+		},
+		{
+			pkg.ApkPkg,
+			candidateKey{PkgName: "libavif"},
+			candidateAddition{AdditionalVendors: []string{"aomedia"}},
 		},
 		{
 			pkg.ApkPkg,
