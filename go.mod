@@ -342,3 +342,5 @@ retract (
 )
 
 replace google.golang.org/grpc => google.golang.org/grpc v1.79.3
+
+replace github.com/go-jose/go-jose/v4 => github.com/go-jose/go-jose/v4 v4.1.4
