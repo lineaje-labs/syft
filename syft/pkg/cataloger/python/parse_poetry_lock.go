@@ -152,15 +152,6 @@ func extractPoetryDependencies(p poetryPackage) []pkg.PythonPoetryLockDependency
 }
 
 func extractPoetryExtras(p poetryPackage) []pkg.PythonPoetryLockExtraEntry {
-	var extras []pkg.PythonPoetryLockExtraEntry
-	for name, deps := range p.Extras {
-		extras = append(extras, pkg.PythonPoetryLockExtraEntry{
-			Name:         name,
-			Dependencies: deps,
-		})
-	}
-	sort.Slice(extras, func(i, j int) bool {
-		return extras[i].Name < extras[j].Name
-	})
-	return extras
+    // Removed code to parse extra components from Poetry as they are not mandatory dependencies
+    return nil
 }
