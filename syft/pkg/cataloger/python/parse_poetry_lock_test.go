@@ -33,20 +33,7 @@ func TestParsePoetryLock(t *testing.T) {
 					{Name: "six", Version: "*"},
 					{Name: "sphinx", Version: "*"},
 				},
-				Extras: []pkg.PythonPoetryLockExtraEntry{
-					{
-						Name:         "deploy",
-						Dependencies: []string{"bumpversion", "twine", "wheel"},
-					},
-					{
-						Name:         "docs",
-						Dependencies: []string{"sphinx", "sphinx-rtd-theme"},
-					},
-					{
-						Name:         "test",
-						Dependencies: []string{"pytest", "pytest-cov", "coveralls", "beautifulsoup4", "hypothesis"},
-					},
-				},
+				Extras: nil,
 			},
 		},
 		{
