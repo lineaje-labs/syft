@@ -572,17 +572,11 @@ func Test_PackageCataloger_Relationships(t *testing.T) {
 			name:    "poetry - multiple extras",
 			fixture: "testdata/poetry/multiple-extras",
 			expectedRelationships: []string{
-				"anyio @ 4.3.0 (.) [dependency-of] anyio @ 4.3.0 (.)",
-				"anyio @ 4.3.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
 				"anyio @ 4.3.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"brotli @ 1.1.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"brotlicffi @ 1.1.0.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"certifi @ 2024.2.2 (.) [dependency-of] httpcore @ 1.0.5 (.)",
 				"certifi @ 2024.2.2 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"cffi @ 1.16.0 (.) [dependency-of] brotlicffi @ 1.1.0.0 (.)",
 				"h11 @ 0.14.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
-				"h2 @ 4.1.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
-				"h2 @ 4.1.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"hpack @ 4.0.0 (.) [dependency-of] h2 @ 4.1.0 (.)",
 				"httpcore @ 1.0.5 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"hyperframe @ 6.0.1 (.) [dependency-of] h2 @ 4.1.0 (.)",
@@ -591,8 +585,6 @@ func Test_PackageCataloger_Relationships(t *testing.T) {
 				"pycparser @ 2.22 (.) [dependency-of] cffi @ 1.16.0 (.)",
 				"sniffio @ 1.3.1 (.) [dependency-of] anyio @ 4.3.0 (.)",
 				"sniffio @ 1.3.1 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"socksio @ 1.0.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
-				"socksio @ 1.0.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
 			},
 		},
 		{
@@ -600,64 +592,36 @@ func Test_PackageCataloger_Relationships(t *testing.T) {
 			fixture: "testdata/poetry/nested-extras",
 			expectedRelationships: []string{
 				"annotated-types @ 0.7.0 (.) [dependency-of] pydantic @ 2.7.1 (.)",
-				"anyio @ 4.3.0 (.) [dependency-of] anyio @ 4.3.0 (.)",
-				"anyio @ 4.3.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
 				"anyio @ 4.3.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"anyio @ 4.3.0 (.) [dependency-of] starlette @ 0.37.2 (.)",
 				"anyio @ 4.3.0 (.) [dependency-of] watchfiles @ 0.21.0 (.)",
 				"certifi @ 2024.2.2 (.) [dependency-of] httpcore @ 1.0.5 (.)",
 				"certifi @ 2024.2.2 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"click @ 8.1.7 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"click @ 8.1.7 (.) [dependency-of] python-dotenv @ 1.0.1 (.)",
 				"click @ 8.1.7 (.) [dependency-of] typer @ 0.12.3 (.)",
 				"click @ 8.1.7 (.) [dependency-of] uvicorn @ 0.29.0 (.)",
 				"colorama @ 0.4.6 (.) [dependency-of] click @ 8.1.7 (.)",
-				"colorama @ 0.4.6 (.) [dependency-of] pygments @ 2.18.0 (.)",
-				"colorama @ 0.4.6 (.) [dependency-of] uvicorn @ 0.29.0 (.)", // proof of uvicorn[standard]
 				"dnspython @ 2.6.1 (.) [dependency-of] email-validator @ 2.1.1 (.)",
 				"email-validator @ 2.1.1 (.) [dependency-of] fastapi @ 0.111.0 (.)",
-				"email-validator @ 2.1.1 (.) [dependency-of] pydantic @ 2.7.1 (.)",
-				"fastapi @ 0.111.0 (.) [dependency-of] fastapi-cli @ 0.0.4 (.)",
 				"fastapi-cli @ 0.0.4 (.) [dependency-of] fastapi @ 0.111.0 (.)",
 				"h11 @ 0.14.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
 				"h11 @ 0.14.0 (.) [dependency-of] uvicorn @ 0.29.0 (.)",
-				"httpcore @ 1.0.5 (.) [dependency-of] dnspython @ 2.6.1 (.)",
 				"httpcore @ 1.0.5 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"httptools @ 0.6.1 (.) [dependency-of] uvicorn @ 0.29.0 (.)", // proof of uvicorn[standard]
-				"httpx @ 0.27.0 (.) [dependency-of] dnspython @ 2.6.1 (.)",
 				"httpx @ 0.27.0 (.) [dependency-of] fastapi @ 0.111.0 (.)",
-				"httpx @ 0.27.0 (.) [dependency-of] starlette @ 0.37.2 (.)",
 				"idna @ 3.7 (.) [dependency-of] anyio @ 4.3.0 (.)",
-				"idna @ 3.7 (.) [dependency-of] dnspython @ 2.6.1 (.)",
 				"idna @ 3.7 (.) [dependency-of] email-validator @ 2.1.1 (.)",
 				"idna @ 3.7 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"itsdangerous @ 2.2.0 (.) [dependency-of] fastapi @ 0.111.0 (.)",
-				"itsdangerous @ 2.2.0 (.) [dependency-of] starlette @ 0.37.2 (.)",
 				"jinja2 @ 3.1.4 (.) [dependency-of] fastapi @ 0.111.0 (.)",
-				"jinja2 @ 3.1.4 (.) [dependency-of] starlette @ 0.37.2 (.)",
 				"markdown-it-py @ 3.0.0 (.) [dependency-of] rich @ 13.7.1 (.)",
-				"markupsafe @ 2.1.5 (.) [dependency-of] jinja2 @ 3.1.4 (.)", // MarkupSafe (mixed case) -> markupsafe
+				"markupsafe @ 2.1.5 (.) [dependency-of] jinja2 @ 3.1.4 (.)",
 				"mdurl @ 0.1.2 (.) [dependency-of] markdown-it-py @ 3.0.0 (.)",
 				"orjson @ 3.10.3 (.) [dependency-of] fastapi @ 0.111.0 (.)",
 				"pydantic @ 2.7.1 (.) [dependency-of] fastapi @ 0.111.0 (.)",
 				"pydantic @ 2.7.1 (.) [dependency-of] pydantic-extra-types @ 2.7.0 (.)",
 				"pydantic @ 2.7.1 (.) [dependency-of] pydantic-settings @ 2.2.1 (.)",
 				"pydantic-core @ 2.18.2 (.) [dependency-of] pydantic @ 2.7.1 (.)",
-				"pydantic-extra-types @ 2.7.0 (.) [dependency-of] fastapi @ 0.111.0 (.)",
-				"pydantic-settings @ 2.2.1 (.) [dependency-of] fastapi @ 0.111.0 (.)",
-				"pygments @ 2.18.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"pygments @ 2.18.0 (.) [dependency-of] rich @ 13.7.1 (.)",
 				"python-dotenv @ 1.0.1 (.) [dependency-of] pydantic-settings @ 2.2.1 (.)",
-				"python-dotenv @ 1.0.1 (.) [dependency-of] uvicorn @ 0.29.0 (.)", // proof of uvicorn[standard]
 				"python-multipart @ 0.0.9 (.) [dependency-of] fastapi @ 0.111.0 (.)",
-				"python-multipart @ 0.0.9 (.) [dependency-of] starlette @ 0.37.2 (.)",
-				"pyyaml @ 6.0.1 (.) [dependency-of] fastapi @ 0.111.0 (.)",
-				"pyyaml @ 6.0.1 (.) [dependency-of] markdown-it-py @ 3.0.0 (.)",
-				"pyyaml @ 6.0.1 (.) [dependency-of] pydantic-settings @ 2.2.1 (.)",
-				"pyyaml @ 6.0.1 (.) [dependency-of] python-multipart @ 0.0.9 (.)",
-				"pyyaml @ 6.0.1 (.) [dependency-of] starlette @ 0.37.2 (.)",
-				"pyyaml @ 6.0.1 (.) [dependency-of] uvicorn @ 0.29.0 (.)", // proof of uvicorn[standard]
-				"rich @ 13.7.1 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"rich @ 13.7.1 (.) [dependency-of] typer @ 0.12.3 (.)",
 				"shellingham @ 1.5.4 (.) [dependency-of] typer @ 0.12.3 (.)",
 				"sniffio @ 1.3.1 (.) [dependency-of] anyio @ 4.3.0 (.)",
@@ -670,29 +634,18 @@ func Test_PackageCataloger_Relationships(t *testing.T) {
 				"typing-extensions @ 4.12.0 (.) [dependency-of] typer @ 0.12.3 (.)",
 				"ujson @ 5.10.0 (.) [dependency-of] fastapi @ 0.111.0 (.)",
 				"uvicorn @ 0.29.0 (.) [dependency-of] fastapi @ 0.111.0 (.)",
-				"uvicorn @ 0.29.0 (.) [dependency-of] fastapi-cli @ 0.0.4 (.)",
-				"uvloop @ 0.19.0 (.) [dependency-of] anyio @ 4.3.0 (.)",
-				"uvloop @ 0.19.0 (.) [dependency-of] uvicorn @ 0.29.0 (.)",     // proof of uvicorn[standard]
-				"watchfiles @ 0.21.0 (.) [dependency-of] uvicorn @ 0.29.0 (.)", // proof of uvicorn[standard]
-				"websockets @ 12.0 (.) [dependency-of] uvicorn @ 0.29.0 (.)",   // proof of uvicorn[standard]
 			},
 		},
 		{
 			name:    "poetry - conflicting extras",
 			fixture: "testdata/poetry/conflicting-with-extras",
 			expectedRelationships: []string{
-				"anyio @ 4.3.0 (.) [dependency-of] anyio @ 4.3.0 (.)",
-				"anyio @ 4.3.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
 				"anyio @ 4.3.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"brotli @ 1.1.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"brotlicffi @ 1.1.0.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"certifi @ 2024.2.2 (.) [dependency-of] httpcore @ 1.0.5 (.)",
 				"certifi @ 2024.2.2 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"cffi @ 1.16.0 (.) [dependency-of] brotlicffi @ 1.1.0.0 (.)",
 				"colorama @ 0.4.6 (.) [dependency-of] rich @ 0.3.3 (.)",
 				"h11 @ 0.14.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
-				"h2 @ 4.1.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
-				"h2 @ 4.1.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"hpack @ 4.0.0 (.) [dependency-of] h2 @ 4.1.0 (.)",
 				"httpcore @ 1.0.5 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"hyperframe @ 6.0.1 (.) [dependency-of] h2 @ 4.1.0 (.)",
@@ -702,33 +655,7 @@ func Test_PackageCataloger_Relationships(t *testing.T) {
 				"pycparser @ 2.22 (.) [dependency-of] cffi @ 1.16.0 (.)",
 				"sniffio @ 1.3.1 (.) [dependency-of] anyio @ 4.3.0 (.)",
 				"sniffio @ 1.3.1 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"socksio @ 1.0.0 (.) [dependency-of] httpcore @ 1.0.5 (.)",
-				"socksio @ 1.0.0 (.) [dependency-of] httpx @ 0.27.0 (.)",
 				"typing-extensions @ 3.10.0.2 (.) [dependency-of] rich @ 0.3.3 (.)",
-
-				// ideally we should NOT see these dependencies. However, they are technically installed in the environment
-				// and an import is present in httpx for each of these, so in theory they are actually dependencies even
-				// though our pyproject.toml looks like this:
-				//
-				//     [tool.poetry.dependencies]
-				//     python = "^3.11"
-				//     httpx = {extras = ["brotli", "http2", "socks"], version = "^0.27.0"}
-				//     pygments = "1.6"
-				//     click = "<8"
-				//     rich = "<10"
-				//
-				// note that pygments, click, and rich are installed outside of the allowable ranges for the given
-				// httpx package version constraints, per the poetry.lock:
-				//
-				//     # for package httpx
-				//     [package.extras]
-				//     cli = ["click (==8.*)", "pygments (==2.*)", "rich (>=10,<14)"]
-				//
-				// note: the pyproject.toml and poetry.lock state are consistent with each other (just with
-				// "poetry install" and "poetry lock", and nothing was forced!)
-				"click @ 7.1.2 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"pygments @ 1.6 (.) [dependency-of] httpx @ 0.27.0 (.)",
-				"rich @ 0.3.3 (.) [dependency-of] httpx @ 0.27.0 (.)",
 			},
 		},
 		{
