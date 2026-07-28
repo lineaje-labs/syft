@@ -10,7 +10,7 @@ import (
 )
 
 type erlangNode struct {
-	value interface{}
+	value any
 }
 
 var errSkipComments = errors.New("")
@@ -39,7 +39,7 @@ func (e erlangNode) Get(index int) erlangNode {
 	return erlangNode{}
 }
 
-func node(value interface{}) erlangNode {
+func node(value any) erlangNode {
 	return erlangNode{
 		value: value,
 	}
@@ -47,7 +47,7 @@ func node(value interface{}) erlangNode {
 
 // parseErlang basic parser for erlang, used by rebar.lock
 func parseErlang(reader io.Reader) (erlangNode, error) {
-	data, err := io.ReadAll(reader)
+	data, err := io.ReadAll(reader) //nolint:gocritic // custom parser requires []byte
 	if err != nil {
 		return node(nil), err
 	}
@@ -156,7 +156,7 @@ func parseErlangString(data []byte, i *int) (erlangNode, error) {
 		}
 		if c == '\\' {
 			*i++
-			if len(data) >= *i {
+			if *i >= len(data) {
 				return node(nil), fmt.Errorf("invalid escape without closed string at %d", *i)
 			}
 			c = data[*i]

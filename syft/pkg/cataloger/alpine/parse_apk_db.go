@@ -32,12 +32,15 @@ type parsedData struct {
 	pkg.ApkDBEntry
 }
 
+const maxApkDBFieldSize = 10 * 1024 * 1024
+
 // parseApkDB parses packages from a given APK "installed" flat-file DB. For more
 // information on specific fields, see https://wiki.alpinelinux.org/wiki/Apk_spec.
 //
 //nolint:funlen
 func parseApkDB(ctx context.Context, resolver file.Resolver, env *generic.Environment, reader file.LocationReadCloser) ([]pkg.Package, []artifact.Relationship, error) {
 	scanner := bufio.NewScanner(reader)
+	scanner.Buffer(nil, maxApkDBFieldSize)
 
 	var errs error
 	var apks []parsedData
@@ -171,7 +174,7 @@ func findReleases(resolver file.Resolver, dbPath string) []linux.Release {
 func parseReleasesFromAPKRepository(reader file.LocationReadCloser) []linux.Release {
 	var releases []linux.Release
 
-	reposB, err := io.ReadAll(reader)
+	reposB, err := io.ReadAll(reader) //nolint:gocritic // regex matching requires full buffer
 	if err != nil {
 		log.Tracef("unable to read APK repositories file %q: %+v", reader.RealPath, err)
 		return nil

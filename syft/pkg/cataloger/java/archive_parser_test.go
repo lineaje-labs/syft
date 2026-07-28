@@ -2,7 +2,6 @@ package java
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -30,7 +29,7 @@ import (
 
 func TestSearchMavenForLicenses(t *testing.T) {
 	url := maventest.MockRepo(t, "internal/maven/testdata/maven-repo")
-	ctx := pkgtest.Context()
+	ctx := pkgtest.Context(t)
 
 	tests := []struct {
 		name             string
@@ -72,7 +71,7 @@ func TestSearchMavenForLicenses(t *testing.T) {
 			require.NoError(t, err)
 
 			// setup parser
-			ap, cleanupFn, err := newJavaArchiveParser(context.Background(),
+			ap, cleanupFn, err := newJavaArchiveParser(pkgtest.Context(t),
 				file.LocationReadCloser{
 					Location:   file.NewLocation(fixture.Name()),
 					ReadCloser: fixture,
@@ -81,17 +80,17 @@ func TestSearchMavenForLicenses(t *testing.T) {
 			require.NoError(t, err)
 
 			// assert licenses are discovered from upstream
-			_, _, _, parsedPom := ap.discoverMainPackageFromPomInfo(context.Background())
+			_, _, _, parsedPom := ap.discoverMainPackageFromPomInfo(pkgtest.Context(t))
 			require.NotNil(t, parsedPom, "expected to find pom information in the fixture")
 			require.NotNil(t, parsedPom.project, "expected parsedPom to have a project")
-			resolvedLicenses, _ := ap.maven.ResolveLicenses(context.Background(), parsedPom.project)
+			resolvedLicenses, _ := ap.maven.ResolveLicenses(pkgtest.Context(t), parsedPom.project)
 			assert.Equal(t, tc.expectedLicenses, toPkgLicenses(ctx, nil, resolvedLicenses))
 		})
 	}
 }
 
 func TestParseJar(t *testing.T) {
-	ctx := pkgtest.Context()
+	ctx := pkgtest.Context(t)
 	tests := []struct {
 		name         string
 		fixture      string
@@ -352,6 +351,85 @@ func TestParseJar(t *testing.T) {
 				},
 			},
 		},
+		{
+			// Dupicate the example-java-app-gradle test and the Makefile is adjusted to copy its jar to example-zap-addon-0.1.0.zap
+			name:    "example-zap-addon",
+			fixture: "testdata/java-builds/packages/example-zap-addon-0.1.0.zap",
+			wantErr: require.NoError, // no nested jars
+			expected: map[string]pkg.Package{
+				"example-zap-addon": {
+					Name:     "example-zap-addon",
+					Version:  "0.1.0",
+					PURL:     "pkg:maven/example-zap-addon/example-zap-addon@0.1.0",
+					Language: pkg.Java,
+					Type:     pkg.JavaPkg,
+					Licenses: pkg.NewLicenseSet(
+						pkg.License{
+							Value:          "Apache-2.0",
+							SPDXExpression: "Apache-2.0",
+							Type:           license.Concluded,
+							Locations:      file.NewLocationSet(file.NewLocation("testdata/java-builds/packages/example-zap-addon-0.1.0.zap")),
+						},
+					),
+					Metadata: pkg.JavaArchive{
+						VirtualPath: "testdata/java-builds/packages/example-zap-addon-0.1.0.zap",
+						Manifest: &pkg.JavaManifest{
+							Main: []pkg.KeyValue{
+								{
+									Key:   "Manifest-Version",
+									Value: "1.0",
+								},
+								{
+									Key:   "Main-Class",
+									Value: "hello.HelloWorld",
+								},
+							},
+						},
+						// PomProject: &pkg.JavaPomProject{
+						// 	Path:       "META-INF/maven/io.jenkins.plugins/example-jenkins-plugin/pom.xml",
+						// 	Parent:     &pkg.JavaPomParent{GroupID: "org.jenkins-ci.plugins", ArtifactID: "plugin", Version: "4.46"},
+						// 	GroupID:    "io.jenkins.plugins",
+						// 	ArtifactID: "example-jenkins-plugin",
+						// 	Version:    "1.0-SNAPSHOT",
+						// 	Name:       "Example Jenkins Plugin",
+						// },
+					},
+				},
+				"joda-time": {
+					Name:     "joda-time",
+					Version:  "2.2",
+					PURL:     "pkg:maven/joda-time/joda-time@2.2",
+					Language: pkg.Java,
+					Type:     pkg.JavaPkg,
+					Licenses: pkg.NewLicenseSet(
+						pkg.NewLicenseFromFieldsWithContext(ctx, "Apache 2", "http://www.apache.org/licenses/LICENSE-2.0.txt", func() *file.Location {
+							l := file.NewLocation("testdata/java-builds/packages/example-zap-addon-0.1.0.zap")
+							return &l
+						}()),
+					),
+					Metadata: pkg.JavaArchive{
+						// ensure that nested packages with different names than that of the parent are appended as
+						// a suffix on the virtual path with a colon separator between group name and artifact name
+						VirtualPath: "testdata/java-builds/packages/example-zap-addon-0.1.0.zap:joda-time:joda-time",
+						PomProperties: &pkg.JavaPomProperties{
+							Path:       "META-INF/maven/joda-time/joda-time/pom.properties",
+							GroupID:    "joda-time",
+							ArtifactID: "joda-time",
+							Version:    "2.2",
+						},
+						PomProject: &pkg.JavaPomProject{
+							Path:        "META-INF/maven/joda-time/joda-time/pom.xml",
+							GroupID:     "joda-time",
+							ArtifactID:  "joda-time",
+							Version:     "2.2",
+							Name:        "Joda time",
+							Description: "Date and time library to replace JDK date handling",
+							URL:         "http://joda-time.sourceforge.net",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -372,7 +450,7 @@ func TestParseJar(t *testing.T) {
 				UseNetwork:              false,
 				UseMavenLocalRepository: false,
 			}
-			parser, cleanupFn, err := newJavaArchiveParser(context.Background(),
+			parser, cleanupFn, err := newJavaArchiveParser(pkgtest.Context(t),
 				file.LocationReadCloser{
 					Location:   file.NewLocation(fixture.Name()),
 					ReadCloser: fixture,
@@ -396,7 +474,6 @@ func TestParseJar(t *testing.T) {
 
 			var parent *pkg.Package
 			for _, a := range actual {
-				a := a
 				if strings.Contains(a.Name, "example-") {
 					parent = &a
 				}
@@ -662,7 +739,7 @@ func TestParseNestedJar(t *testing.T) {
 			require.NoError(t, err)
 			gap := newGenericArchiveParserAdapter(ArchiveCatalogerConfig{})
 
-			actual, _, err := gap.processJavaArchive(context.Background(), file.LocationReadCloser{
+			actual, _, err := gap.processJavaArchive(pkgtest.Context(t), file.LocationReadCloser{
 				Location:   file.NewLocation(fixture.Name()),
 				ReadCloser: fixture,
 			}, nil)
@@ -683,7 +760,6 @@ func TestParseNestedJar(t *testing.T) {
 
 			actualNameVersionPairSet := strset.New()
 			for _, a := range actual {
-				a := a
 				key := makeKey(&a)
 				actualNameVersionPairSet.Add(key)
 				if !expectedNameVersionPairSet.Has(key) {
@@ -702,7 +778,6 @@ func TestParseNestedJar(t *testing.T) {
 			}
 
 			for _, a := range actual {
-				a := a
 				actualKey := makeKey(&a)
 
 				metadata := a.Metadata.(pkg.JavaArchive)
@@ -1080,7 +1155,7 @@ func Test_newPackageFromMavenData(t *testing.T) {
 			test.expectedParent.Locations = locations
 
 			r := maven.NewResolver(nil, maven.DefaultConfig())
-			actualPackage := newPackageFromMavenData(context.Background(), r, test.props, test.project, test.parent, file.NewLocation(virtualPath))
+			actualPackage := newPackageFromMavenData(pkgtest.Context(t), r, test.props, test.project, test.parent, file.NewLocation(virtualPath))
 			if test.expectedPackage == nil {
 				require.Nil(t, actualPackage)
 			} else {
@@ -1120,7 +1195,7 @@ func Test_artifactIDMatchesFilename(t *testing.T) {
 }
 
 func Test_parseJavaArchive_regressions(t *testing.T) {
-	ctx := context.TODO()
+	ctx := pkgtest.Context(t)
 	apiAll := pkg.Package{
 		Name:      "api-all",
 		Version:   "2.0.0",
@@ -1494,12 +1569,12 @@ func Test_deterministicMatchingPomProperties(t *testing.T) {
 		t.Run(test.fixture, func(t *testing.T) {
 			fixturePath := generateJavaMetadataJarFixture(t, test.fixture, "jar")
 
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				func() {
 					fixture, err := os.Open(fixturePath)
 					require.NoError(t, err)
 
-					parser, cleanupFn, err := newJavaArchiveParser(context.Background(),
+					parser, cleanupFn, err := newJavaArchiveParser(pkgtest.Context(t),
 						file.LocationReadCloser{
 							Location:   file.NewLocation(fixture.Name()),
 							ReadCloser: fixture,
@@ -1507,7 +1582,7 @@ func Test_deterministicMatchingPomProperties(t *testing.T) {
 					defer cleanupFn()
 					require.NoError(t, err)
 
-					groupID, artifactID, version, _ := parser.discoverMainPackageFromPomInfo(context.TODO())
+					groupID, artifactID, version, _ := parser.discoverMainPackageFromPomInfo(pkgtest.Context(t))
 					require.Equal(t, test.expected, maven.NewID(groupID, artifactID, version))
 				}()
 			}
@@ -1634,9 +1709,9 @@ func Test_jarPomPropertyResolutionDoesNotPanic(t *testing.T) {
 	fixture, err := os.Open(jarName)
 	require.NoError(t, err)
 
-	ctx := context.TODO()
+	ctx := pkgtest.Context(t)
 	// setup parser
-	ap, cleanupFn, err := newJavaArchiveParser(context.Background(),
+	ap, cleanupFn, err := newJavaArchiveParser(pkgtest.Context(t),
 		file.LocationReadCloser{
 			Location:   file.NewLocation(fixture.Name()),
 			ReadCloser: fixture,
