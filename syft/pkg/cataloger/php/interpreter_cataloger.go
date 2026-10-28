@@ -41,7 +41,7 @@ func NewInterpreterCataloger() pkg.Cataloger { //nolint:funlen
 				FileGlob: "**/php*",
 				EvidenceMatcher: m.FileNameTemplateVersionMatcher(
 					`(.*/|^)php[0-9]*$`,
-					`(?m)X-Powered-By: PHP\/(?P<version>[0-9]+\.[0-9]+\.[0-9]+(beta[0-9]+|alpha[0-9]+|RC[0-9]+)?)`),
+					`(?m)X-Powered-By: PHP\/(?P<version>[0-9]+\.[0-9]+\.[0-9]+(beta[0-9]+|alpha[0-9]+|RC[0-9]+)?(-[a-zA-Z0-9._-]+)?)`),
 				Package: "php-cli",
 				PURL: packageurl.PackageURL{
 					Type: packageurl.TypeGeneric,
@@ -63,7 +63,7 @@ func NewInterpreterCataloger() pkg.Cataloger { //nolint:funlen
 				Class:    "php-fpm-binary",
 				FileGlob: "**/php-fpm*",
 				EvidenceMatcher: m.FileContentsVersionMatcher(
-					`(?m)X-Powered-By: PHP\/(?P<version>[0-9]+\.[0-9]+\.[0-9]+(beta[0-9]+|alpha[0-9]+|RC[0-9]+)?)`),
+					`(?m)X-Powered-By: PHP\/(?P<version>[0-9]+\.[0-9]+\.[0-9]+(beta[0-9]+|alpha[0-9]+|RC[0-9]+)?(-[a-zA-Z0-9._-]+)?)`),
 				Package: "php-fpm",
 				PURL: packageurl.PackageURL{
 					Type: packageurl.TypeGeneric,
@@ -85,7 +85,7 @@ func NewInterpreterCataloger() pkg.Cataloger { //nolint:funlen
 				Class:    "php-apache-binary",
 				FileGlob: "**/apache*/**/libphp*.so",
 				EvidenceMatcher: m.FileContentsVersionMatcher(
-					`(?m)X-Powered-By: PHP\/(?P<version>[0-9]+\.[0-9]+\.[0-9]+(beta[0-9]+|alpha[0-9]+|RC[0-9]+)?)`),
+					`(?m)X-Powered-By: PHP\/(?P<version>[0-9]+\.[0-9]+\.[0-9]+(beta[0-9]+|alpha[0-9]+|RC[0-9]+)?(-[a-zA-Z0-9._-]+)?)`),
 				Package: "libphp",
 				PURL: packageurl.PackageURL{
 					Type: packageurl.TypeGeneric,
