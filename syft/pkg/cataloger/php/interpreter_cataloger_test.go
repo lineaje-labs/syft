@@ -69,6 +69,14 @@ func Test_InterpreterCataloger(t *testing.T) {
 			},
 		},
 		{
+			name:    "vendor-suffixed version (lineaje build)",
+			fixture: "image-lineaje-version",
+			expectedPkgs: []string{
+				"php-cli @ 8.1.34-lineaje-01 (/usr/local/bin/php)",
+				"php-fpm @ 8.1.34-lineaje-01 (/usr/local/sbin/php-fpm)",
+			},
+		},
+		{
 			name:    "apache installation with libphp and extensions",
 			fixture: "image-apache",
 			expectedPkgs: []string{
