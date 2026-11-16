@@ -319,6 +319,21 @@ func Test_newRequirement(t *testing.T) {
 			},
 		},
 		{
+			name: "single character name",
+			raw:  "q==2.7",
+			want: &unprocessedRequirement{
+				Name:              "q",
+				VersionConstraint: "==2.7",
+			},
+		},
+		{
+			name: "single character name without version",
+			raw:  "q",
+			want: &unprocessedRequirement{
+				Name: "q",
+			},
+		},
+		{
 			name: "arbitrary equality",
 			raw:  "urllib3===1.26.20",
 			want: &unprocessedRequirement{
@@ -561,6 +576,26 @@ func Test_parseVersion(t *testing.T) {
 			name:    "all segments combined",
 			version: "== 1.0a1.post2.dev3+local.1",
 			want:    "1.0a1.post2.dev3+local.1",
+		},
+		{
+			name:    "epoch",
+			version: "== 1!2.0.0",
+			want:    "1!2.0.0",
+		},
+		{
+			name:    "epoch with all segments combined",
+			version: "== 1!1.0a1.post2.dev3+local.1",
+			want:    "1!1.0a1.post2.dev3+local.1",
+		},
+		{
+			name:    "arbitrary equality with epoch",
+			version: "=== 1!2.0.0",
+			want:    "1!2.0.0",
+		},
+		{
+			name:    "bare exclusion is not a pin",
+			version: "!= 1.1.0",
+			want:    "",
 		},
 		{
 			name:    "resolve lowest, simple constraint",
